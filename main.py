@@ -10,20 +10,19 @@ def extract_tables_(pdf_path, output_dir):
     with pdfplumber.open(pdf_path) as pdf:
         for page_number, page in enumerate(tqdm(pdf.pages, desc="Processing Pages")):
             try:
-                # for debugging the images
-                debug_pic = page.to_image()
-                debug_pic.debug_tablefinder(
-                    table_settings={
-                        "join_tolerance": 7,  
-                        "intersection_tolerance": 8,  
-                        "horizontal_strategy": "lines_strict",
-                        "snap_x_tolerance": 5,
-                        "explicit_vertical_lines": [30, 100, 235, 365, 440, 570]
+                # debug_pic = page.to_image()
+                # debug_pic.debug_tablefinder(
+                #     table_settings={
+                #         "join_tolerance": 7,  
+                #         "intersection_tolerance": 8,  
+                #         "horizontal_strategy": "lines_strict",
+                #         "snap_x_tolerance": 5,
+                #         "explicit_vertical_lines": [30, 100, 235, 365, 440, 570]
 
-                    }
-                )
-                debug_image_path = f"{output_dir}/debug_page_{page_number+1}.png"
-                debug_pic.save(debug_image_path)
+                #     }
+                # )
+                # debug_image_path = f"{output_dir}/debug_page_{page_number+1}.png"
+                # debug_pic.save(debug_image_path)
                 
                 tables = page.extract_tables(table_settings={"join_tolerance": 7,  
                                                             "intersection_tolerance": 8,  
