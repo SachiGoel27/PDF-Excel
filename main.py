@@ -5,7 +5,6 @@ from tqdm import tqdm
 
 def extract_tables_(pdf_path, output_dir):
     combined_data = []
-    header = ["Item no.", "SeboNr", "Description", "Quantity", "Comment"]  # Expected header
 
     with pdfplumber.open(pdf_path) as pdf:
         for page_number, page in enumerate(tqdm(pdf.pages, desc="Processing Pages")):
@@ -17,7 +16,8 @@ def extract_tables_(pdf_path, output_dir):
                 #         "intersection_tolerance": 8,  
                 #         "horizontal_strategy": "lines_strict",
                 #         "snap_x_tolerance": 5,
-                #         "explicit_vertical_lines": [30, 100, 235, 365, 440, 570]
+                #         "explicit_vertical_lines": [30, 100, 235, 365, 440, 570],
+                #         "explicit_horizontal_lines": [800]
 
                 #     }
                 # )
@@ -28,13 +28,12 @@ def extract_tables_(pdf_path, output_dir):
                                                             "intersection_tolerance": 8,  
                                                             "horizontal_strategy": "lines_strict",
                                                             "snap_x_tolerance": 5,
-                                                            "explicit_vertical_lines": [30, 100, 235, 365, 440, 570]})
+                                                            "explicit_vertical_lines": [30, 100, 235, 365, 440, 570],
+                                                            "explicit_horizontal_lines": [800]
+                                                            })
                 if tables:     
                     for i, table in enumerate(tables):
-                        print(f"Page {page_number+1}, Table {i+1}:\n{table}")
-                        
                         if len(table[0]) > 5:
-                            print("Split col")
                             for row in table[1:]:  
                                 row[2] = f"{row[2]} {row[3]}"
                                 del row[3] 
@@ -48,9 +47,26 @@ def extract_tables_(pdf_path, output_dir):
                         while len(df.columns) < 5:
                             df[len(df.columns)] = "" 
                         
+                        df = df.dropna(how="all")
 
-                        output_file = f"{output_dir}/table_page_{page_number+1}_table_{i+1}.csv"
-                        df.to_csv(output_file, index=False)
+                        data = df.values.tolist()
+                        processed_data = []
+                        for row in data:
+                            if row[0].strip() == "":  
+                                if processed_data:  
+                                    previous_row = processed_data[-1]
+                                    for col_index in range(1, len(row)):
+                                        previous_row[col_index] += f" {row[col_index]}".strip()
+                            else:
+                                processed_data.append(row)
+
+                        combined_data.extend(processed_data)
+
+                combined_df = pd.DataFrame(combined_data, columns=["Item no.", "SeboNr", "Description", "Quantity", "Comment"])
+
+                output_file = f"{output_dir}/combined_output.csv"
+                combined_df.to_csv(output_file, index=False)
+                print(f"Combined CSV saved to {output_file}")
 
             except Exception as e:
                 print(f"Error on pathge {page_number+1}: {e}")
