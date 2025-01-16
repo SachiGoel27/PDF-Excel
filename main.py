@@ -7,6 +7,7 @@ from openpyxl.styles import Alignment, Font, Border, Side
 
 def extract_tables_(pdf_path):
     combined_data = []
+    previous_row = None
 
     with pdfplumber.open(pdf_path) as pdf:
         for page_number, page in enumerate(tqdm(pdf.pages, desc="Processing Pages")):
@@ -79,19 +80,21 @@ def extract_tables_(pdf_path):
                         while len(df.columns) < 5:
                             df[len(df.columns)] = "" 
                         
-                        df = df.dropna(how="all")
+                        # df = df.dropna(how="all")
 
                         data = df.values.tolist()
                         processed_data = []
                         
                         for row in data:
-                            if not row[0].strip() or not row[0].isdigit(): 
-                                if processed_data:  
-                                    previous_row = processed_data[-1]
+                            if not row[0].strip() or not row[0].isdigit():
+                                if previous_row:
                                     for col_index in range(1, len(row)):
                                         previous_row[col_index] += f" {row[col_index]}".strip()
+                                else:
+                                    print(f"Warning: Overflow row detected without a previous row: {row}")
                             else:
                                 processed_data.append(row)
+                                previous_row = row  
 
                         combined_data.extend(processed_data)
 
