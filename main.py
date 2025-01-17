@@ -10,12 +10,34 @@ def extract_tables_(pdf_path):
     previous_row = None
 
     with pdfplumber.open(pdf_path) as pdf:
+        col_count = 0
         for page_number, page in enumerate(tqdm(pdf.pages, desc="Processing Pages")):
             try:
                 page_text = page.extract_text()
                 if page_text and "Inhaltsverzeichnis" in page_text:
                     print(f"Page {page_number + 1}: Inhaltsverzeichnis detected. Skipping...")
                     continue
+                
+                elif page_text and "Pos./" in page_text.splitlines()[1]:
+                    tables = page.extract_tables(table_settings= {
+                        "join_tolerance": 7,  
+                        "intersection_tolerance": 8,  
+                        "horizontal_strategy": "lines_strict",
+                        "snap_x_tolerance": 5,
+                        "explicit_vertical_lines": [40, 70, 110, 220, 340, 380, 510, 550]
+                    })
+                    # debug_pic = page.to_image()
+                    # debug_pic.debug_tablefinder(
+                    #     table_settings={
+                    #         "join_tolerance": 7,  
+                    #         "intersection_tolerance": 8,  
+                    #         "horizontal_strategy": "lines_strict",
+                    #         "snap_x_tolerance": 5,
+                    #         "explicit_vertical_lines": [40, 70, 110, 220, 340, 380, 510, 550]
+                    #     }
+                    # )
+                    # debug_image_path = f"output_tables/debug_page_{page_number+1}.png"
+                    # debug_pic.save(debug_image_path)
 
                 elif page_text and "Item no." not in page_text.splitlines()[0]:
                     print(f"Page {page_number + 1}: Content detected above the table.")
@@ -26,21 +48,6 @@ def extract_tables_(pdf_path):
                                                             "explicit_vertical_lines": [50, 100, 235, 365, 440, 550],
                                                             "explicit_horizontal_lines": [800]
                                                             })
-                    # debug_pic = page.to_image()
-                    # debug_pic.debug_tablefinder(
-                    #     table_settings={
-                    #         "join_tolerance": 7,  
-                    #         "intersection_tolerance": 8,  
-                    #         "horizontal_strategy": "lines_strict",
-                    #         "snap_x_tolerance": 5,
-                    #         "explicit_vertical_lines": [50, 100, 235, 365, 440, 550],
-                    #         "explicit_horizontal_lines": [800]
-
-                    #     }
-                    # )
-                    # debug_image_path = f"output_tables/debug_page_{page_number+1}.png"
-                    # debug_pic.save(debug_image_path)
-                
                 else:
                     print(f"Page {page_number + 1}: No content above the table.")
                     tables = page.extract_tables(table_settings={"join_tolerance": 7,  
@@ -50,37 +57,10 @@ def extract_tables_(pdf_path):
                                                             "explicit_vertical_lines": [35, 100, 235, 365, 440, 570],
                                                             "explicit_horizontal_lines": [800]
                                                             })
-                    # debug_pic = page.to_image()
-                    # debug_pic.debug_tablefinder(
-                    #     table_settings={
-                    #         "join_tolerance": 7,  
-                    #         "intersection_tolerance": 8,  
-                    #         "horizontal_strategy": "lines_strict",
-                    #         "snap_x_tolerance": 5,
-                    #         "explicit_vertical_lines": [35, 100, 235, 365, 440, 570],
-                    #         "explicit_horizontal_lines": [800]
-
-                    #     }
-                    # )
-                    # debug_image_path = f"output_tables/debug_page_{page_number+1}.png"
-                    # debug_pic.save(debug_image_path)
                 if tables:   
-                    for i, table in enumerate(tables):                       
-                        if len(table[0]) > 5:
-                            for row in table[1:]:  
-                                row[2] = f"{row[2]} {row[3]}"
-                                del row[3] 
-                            
-                            table[0][2] = "Description" 
-                            del table[0][3]
-                            
+                    for i, table in enumerate(tables): 
+                        col_count = len(table[0])                        
                         df = pd.DataFrame(table[1:], columns=table[0])
-                        df = df.iloc[:, :5]
-                        
-                        while len(df.columns) < 5:
-                            df[len(df.columns)] = "" 
-                        
-                        # df = df.dropna(how="all")
 
                         data = df.values.tolist()
                         processed_data = []
@@ -100,10 +80,14 @@ def extract_tables_(pdf_path):
 
             except Exception as e:
                 print(f"Error on pathge {page_number+1}: {e}")
-    
-    combined_df = pd.DataFrame(combined_data, columns=["Item no.", "SeboNr", "Description", "Quantity", "Comment"])
-    output_stream = BytesIO()
-   
+    combined_df = ""
+    output_stream = ""
+    if col_count == 5:
+        combined_df = pd.DataFrame(combined_data, columns=["Item no.", "SeboNr", "Description", "Quantity", "Comment"])
+        output_stream = BytesIO()
+    else:
+        combined_df = pd.DataFrame(combined_data, columns=["Pos./\nFig.", "Ident./\nNo.", "Benennung", "Nomenclature", "Menge/\nQty.", "MPOS~Bemerkung/\nRemark", "s. Seite\nsee Page"])
+        output_stream = BytesIO()
     # make excel pretty
     with pd.ExcelWriter(output_stream, engine='openpyxl') as writer:
         combined_df.to_excel(writer, index=False, sheet_name='Combined Output')
