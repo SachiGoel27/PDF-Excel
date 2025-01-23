@@ -35,19 +35,19 @@ def extract_tables_(pdf_path):
                                                             "explicit_vertical_lines": [50, 100, 235, 400, 550],
                                                             "explicit_horizontal_lines": [800]
                                                             })
-                    debug_pic = page.to_image()
-                    debug_pic.debug_tablefinder(
-                        table_settings={
-                            "join_tolerance": 7,  
-                            "intersection_tolerance": 8,  
-                            "horizontal_strategy": "lines_strict",
-                            "snap_x_tolerance": 5,
-                            "explicit_vertical_lines": [50, 100, 235, 400, 550],
-                            "explicit_horizontal_lines": [800]
-                        }
-                    )
-                    debug_image_path = f"output_tables/debug_page_{page_number+1}.png"
-                    debug_pic.save(debug_image_path)
+                    # debug_pic = page.to_image()
+                    # debug_pic.debug_tablefinder(
+                    #     table_settings={
+                    #         "join_tolerance": 7,  
+                    #         "intersection_tolerance": 8,  
+                    #         "horizontal_strategy": "lines_strict",
+                    #         "snap_x_tolerance": 5,
+                    #         "explicit_vertical_lines": [50, 100, 235, 400, 550],
+                    #         "explicit_horizontal_lines": [800]
+                    #     }
+                    # )
+                    # debug_image_path = f"output_tables/debug_page_{page_number+1}.png"
+                    # debug_pic.save(debug_image_path)
                 elif page_text and "Item no." not in page_text.splitlines()[0]:
                     print(f"Page {page_number + 1}: Content detected above the table.")
                     tables = page.extract_tables(table_settings={"join_tolerance": 7,  
