@@ -14,8 +14,8 @@ def extract_tables_(pdf_path):
         for page_number, page in enumerate(tqdm(pdf.pages, desc="Processing Pages")):
             try:
                 page_text = page.extract_text()
+                print(page_text.splitlines()[1] + " " + str(page_number))
                 if page_text and "Inhaltsverzeichnis" in page_text:
-                    print(f"Page {page_number + 1}: Inhaltsverzeichnis detected. Skipping...")
                     continue
                 
                 elif page_text and "Pos./" in page_text.splitlines()[1]:
@@ -26,13 +26,28 @@ def extract_tables_(pdf_path):
                         "snap_x_tolerance": 5,
                         "explicit_vertical_lines": [40, 70, 110, 220, 340, 380, 510, 550]
                     })
-                elif page_text and "Comment" not in page_text.splitlines()[1]:
-                    print(f"Page {page_number + 1}: Content detected above the table; no comment")
+                elif page_text and ("ME/" in page_text.splitlines()[1] or "Qty. Unit/" in page_text.splitlines()[1]):
                     tables = page.extract_tables(table_settings={"join_tolerance": 7,  
                                                             "intersection_tolerance": 8,  
                                                             "horizontal_strategy": "lines_strict",
                                                             "snap_x_tolerance": 5,
-                                                            "explicit_vertical_lines": [50, 100, 235, 400, 550],
+                                                            "explicit_vertical_lines": [40, 70, 110, 220, 330, 365, 410, 505, 550],
+                                                            "explicit_horizontal_lines": [800]
+                                                            })
+                elif page_text and "Fig./" in page_text.splitlines()[1]:
+                    tables = page.extract_tables(table_settings= {
+                        "join_tolerance": 7,  
+                        "intersection_tolerance": 8,  
+                        "horizontal_strategy": "lines_strict",
+                        "snap_x_tolerance": 5,
+                        "explicit_vertical_lines": [40, 70, 110, 220, 340, 380, 510, 550]
+                    })
+                elif page_text and "Comment" in page_text.splitlines()[0] or "Comment"  in page_text.splitlines()[1]:
+                    tables = page.extract_tables(table_settings={"join_tolerance": 7,  
+                                                            "intersection_tolerance": 8,  
+                                                            "horizontal_strategy": "lines_strict",
+                                                            "snap_x_tolerance": 5,
+                                                            "explicit_vertical_lines": [35, 100, 235, 365, 440, 570],
                                                             "explicit_horizontal_lines": [800]
                                                             })
                     # debug_pic = page.to_image()
@@ -42,35 +57,33 @@ def extract_tables_(pdf_path):
                     #         "intersection_tolerance": 8,  
                     #         "horizontal_strategy": "lines_strict",
                     #         "snap_x_tolerance": 5,
-                    #         "explicit_vertical_lines": [50, 100, 235, 400, 550],
+                    #         "explicit_vertical_lines": [35, 100, 235, 365, 440, 570],
                     #         "explicit_horizontal_lines": [800]
                     #     }
                     # )
                     # debug_image_path = f"output_tables/debug_page_{page_number+1}.png"
                     # debug_pic.save(debug_image_path)
-                elif page_text and "Item no." not in page_text.splitlines()[0]:
-                    print(f"Page {page_number + 1}: Content detected above the table.")
-                    tables = page.extract_tables(table_settings={"join_tolerance": 7,  
-                                                            "intersection_tolerance": 8,  
-                                                            "horizontal_strategy": "lines_strict",
-                                                            "snap_x_tolerance": 5,
-                                                            "explicit_vertical_lines": [50, 100, 235, 365, 440, 550],
-                                                            "explicit_horizontal_lines": [800]
-                                                            })
+                # elif page_text and "Item no." not in page_text.splitlines()[0]:
+                #     tables = page.extract_tables(table_settings={"join_tolerance": 7,  
+                #                                             "intersection_tolerance": 8,  
+                #                                             "horizontal_strategy": "lines_strict",
+                #                                             "snap_x_tolerance": 5,
+                #                                             "explicit_vertical_lines": [50, 100, 235, 365, 440, 550],
+                #                                             "explicit_horizontal_lines": [800]
+                #                                             })
                 else:
-                    print("2")
-                    print(f"Page {page_number + 1}: No content above the table.")
                     tables = page.extract_tables(table_settings={"join_tolerance": 7,  
                                                             "intersection_tolerance": 8,  
                                                             "horizontal_strategy": "lines_strict",
                                                             "snap_x_tolerance": 5,
-                                                            "explicit_vertical_lines": [35, 100, 235, 365, 440, 570],
+                                                            "explicit_vertical_lines": [50, 100, 235, 400, 550],
                                                             "explicit_horizontal_lines": [800]
                                                             })
 
                 if tables:   
                     for i, table in enumerate(tables): 
-                        col_count = len(table[0])                        
+                        print(f"Table {i+1}: Columns: {len(table[0])}, Rows: {len(table) - 1}")
+                        col_count = len(table[0])                       
                         df = pd.DataFrame(table[1:], columns=table[0])
 
                         data = df.values.tolist()
@@ -93,11 +106,16 @@ def extract_tables_(pdf_path):
                 print(f"Error on pathge {page_number+1}: {e}")
     combined_df = ""
     output_stream = ""
+    col_count = len(combined_data[0])
+    print(f"First few rows of combined_data: {combined_data[:5]}")
     if col_count == 5:
         combined_df = pd.DataFrame(combined_data, columns=["Item no.", "SeboNr", "Description", "Quantity", "Comment"])
         output_stream = BytesIO()
-    else:
+    elif col_count == 7:
         combined_df = pd.DataFrame(combined_data, columns=["Pos./\nFig.", "Ident./\nNo.", "Benennung", "Nomenclature", "Menge/\nQty.", "MPOS~Bemerkung/\nRemark", "s. Seite\nsee Page"])
+        output_stream = BytesIO()
+    elif col_count == 8:
+        combined_df = pd.DataFrame(combined_data, columns=["Fig./\nPos.", "No./\nIdent.", "Nomenclature", "Benennung", "Qty./\nMenge.", "Qty. Unit/", "MPOS~Remark/Bemerkung", "see page\n s. Seite"])
         output_stream = BytesIO()
     # make excel pretty
     with pd.ExcelWriter(output_stream, engine='openpyxl') as writer:
