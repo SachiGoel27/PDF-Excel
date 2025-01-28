@@ -42,7 +42,7 @@ def extract_tables_(pdf_path):
                         "snap_x_tolerance": 5,
                         "explicit_vertical_lines": [40, 70, 110, 220, 340, 380, 510, 550]
                     })
-                elif page_text and "Comment" in page_text.splitlines()[0] or "Comment"  in page_text.splitlines()[1]:
+                elif page_text and "Comment" in page_text.splitlines()[0]:
                     tables = page.extract_tables(table_settings={"join_tolerance": 7,  
                                                             "intersection_tolerance": 8,  
                                                             "horizontal_strategy": "lines_strict",
@@ -50,35 +50,35 @@ def extract_tables_(pdf_path):
                                                             "explicit_vertical_lines": [35, 100, 235, 365, 440, 570],
                                                             "explicit_horizontal_lines": [800]
                                                             })
-                    # debug_pic = page.to_image()
-                    # debug_pic.debug_tablefinder(
-                    #     table_settings={
-                    #         "join_tolerance": 7,  
-                    #         "intersection_tolerance": 8,  
-                    #         "horizontal_strategy": "lines_strict",
-                    #         "snap_x_tolerance": 5,
-                    #         "explicit_vertical_lines": [35, 100, 235, 365, 440, 570],
-                    #         "explicit_horizontal_lines": [800]
-                    #     }
-                    # )
-                    # debug_image_path = f"output_tables/debug_page_{page_number+1}.png"
-                    # debug_pic.save(debug_image_path)
-                # elif page_text and "Item no." not in page_text.splitlines()[0]:
-                #     tables = page.extract_tables(table_settings={"join_tolerance": 7,  
-                #                                             "intersection_tolerance": 8,  
-                #                                             "horizontal_strategy": "lines_strict",
-                #                                             "snap_x_tolerance": 5,
-                #                                             "explicit_vertical_lines": [50, 100, 235, 365, 440, 550],
-                #                                             "explicit_horizontal_lines": [800]
-                #                                             })
-                else:
+                elif page_text and "Comment" in page_text.splitlines()[1]:
                     tables = page.extract_tables(table_settings={"join_tolerance": 7,  
                                                             "intersection_tolerance": 8,  
                                                             "horizontal_strategy": "lines_strict",
                                                             "snap_x_tolerance": 5,
-                                                            "explicit_vertical_lines": [50, 100, 235, 400, 550],
+                                                            "explicit_vertical_lines": [50, 100, 235, 365, 440, 550],
                                                             "explicit_horizontal_lines": [800]
                                                             })
+                else:
+                    debug_pic = page.to_image()
+                    debug_pic.debug_tablefinder(
+                        table_settings={
+                            "join_tolerance": 7,  
+                            "intersection_tolerance": 8,  
+                            "horizontal_strategy": "lines_strict",
+                            "snap_x_tolerance": 5,
+                            "explicit_vertical_lines": [50, 100, 235, 450, 550],
+                            "explicit_horizontal_lines": [800]
+                        }
+                    )
+                    # debug_image_path = f"output_table/debug_page_{page_number+1}.png"
+                    # debug_pic.save(debug_image_path)
+                    # tables = page.extract_tables(table_settings={"join_tolerance": 7,  
+                    #                                         "intersection_tolerance": 8,  
+                    #                                         "horizontal_strategy": "lines_strict",
+                    #                                         "snap_x_tolerance": 5,
+                    #                                         "explicit_vertical_lines": [50, 100, 235, 460, 550],
+                    #                                         "explicit_horizontal_lines": [800]
+                    #                                         })
 
                 if tables:   
                     for i, table in enumerate(tables): 
@@ -108,7 +108,7 @@ def extract_tables_(pdf_path):
     output_stream = ""
     col_count = len(combined_data[0])
     print(f"First few rows of combined_data: {combined_data[:5]}")
-    if col_count == 5:
+    if col_count == 5 or col_count == 4:
         combined_df = pd.DataFrame(combined_data, columns=["Item no.", "SeboNr", "Description", "Quantity", "Comment"])
         output_stream = BytesIO()
     elif col_count == 7:
