@@ -1,5 +1,5 @@
 import streamlit as st
-import main as main
+import sennebogen as sennebogen
 
 dark_yellow_css = """
 <style>
@@ -56,11 +56,32 @@ st.markdown(dark_yellow_css, unsafe_allow_html=True)
 
 st.title('PDF to Excel')
 st.subheader("Input in your Sennebogen file to turn into an Excel file.", divider="gray")
-file = st.file_uploader("Input a PDF file", type=["PDF"])
-if st.button("Process File"):
+file = st.file_uploader("Input a PDF file", type=["PDF"], key="2")
+if st.button("Process File", key="2b"):
     if file is not None:
         with st.spinner("Processing..."):
-            excel_data = main.extract_tables_(file)
+            excel_data = sennebogen.extract_tables_(file)
+
+            if excel_data:
+                st.download_button(
+                    label="Download Excel File",
+                    data=excel_data,
+                    file_name=f"{file.name}.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+            else:
+                st.error("No tables found in the PDF.")
+    else:
+        st.warning("Please upload a file before submitting.")
+
+st.text("Below is a work in progress...")
+st.subheader("Input in your Liebherr file to turn into an Excel file.", divider="gray")
+file = st.file_uploader("Input a PDF file", type=["PDF"], key="3")
+
+if st.button("Process File", key="3b"):
+    if file is not None:
+        with st.spinner("Processing..."):
+            excel_data = sennebogen.extract_tables_(file)
 
             if excel_data:
                 st.download_button(
