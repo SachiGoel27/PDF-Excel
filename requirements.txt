@@ -3,3 +3,4 @@ pandas
 tqdm
 openpyxl
 streamlit
+reportlab
