@@ -17,38 +17,40 @@ def extract_values(pdf_path):
                 page = page.within_bbox((0, 2*height/5, width, height))
                 tables = page.extract_table(table_settings={
                     "horizontal_strategy": "text",
-                    "explicit_vertical_lines": [67, 225, 270, 340, 549],
-                    "snap_tolerance": 9
+                    "explicit_vertical_lines": [67, 225, 270, 340, 545],
+                    "snap_tolerance": 9,
+                    "vertical_strategy": "explicit"
                 })
                 # debug_pic= page.to_image()
                 # debug_pic.debug_tablefinder(table_settings={
                 #     "horizontal_strategy": "text",
-                #     "explicit_vertical_lines": [67, 225, 270, 340, 549],
-                #     "snap_tolerance": 9
+                #     "explicit_vertical_lines": [67, 225, 270, 340, 545],
+                #     "snap_tolerance": 10,
+                #     "vertical_strategy": "explicit"
                 # })
                 # debug_pic.save(f"output_tables/{i}.png")
             else:
                 tables = page.extract_table(table_settings={
                     "horizontal_strategy": "text",
-                    "explicit_vertical_lines": [67, 225, 270, 340, 549],
-                    "snap_tolerance": 9
+                    "explicit_vertical_lines": [67, 225, 270, 340, 545],
+                    "snap_tolerance": 10,
+                    "vertical_strategy": "explicit"
                 })
             
             if tables:
                 df = pd.DataFrame(tables[1:], columns=tables[0])
-                data = df.values.tolist()
-                processed_data = []
-                for row in data:
+                for row in df.values.tolist():
                     if row[1].strip():
-                        processed_data.append(row)
-            combinded_data.extend(processed_data)
+                        combinded_data.append(row)
             i += 1
-    combinded_df = pd.DataFrame(processed_data, columns=["Item", "Qty Order", "Each", "Total"])
-    combinded_df.insert(2, "Qty Rec", "")
-    combinded_df.insert(3, "Qty B/O", "")
-    combinded_data = combinded_df.values.tolist()
+    df = pd.DataFrame(combinded_data, columns=["Item", "Qty Order", "Each", "Total"])
+    df.insert(2, "Qty Rec", "")
+    df.insert(3, "Qty B/O", "")
+    combinded_data = df.values.tolist()
     combinded_data.insert(0, ["Item", "Qty Order", "Qty Rec", "Qty B/O", "Each", "Total"])
     
+    print(combinded_data)
+
     # pdf portion
 
     buffer = io.BytesIO()

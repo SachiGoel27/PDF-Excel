@@ -56,7 +56,7 @@ a, .css-1fv8s86, .css-1hxh2wk, .css-1ynw3xd {
 """
 st.markdown(dark_yellow_css, unsafe_allow_html=True)
 
-st.title('PDF to Excel')
+st.title('File Conversions')
 st.subheader("Input in your Sennebogen file to turn into an Excel file.", divider="gray")
 file = st.file_uploader("Input a PDF file", type=["PDF"], key="2")
 if st.button("Process File", key="2b"):
