@@ -1,5 +1,7 @@
 import streamlit as st
 import sennebogen as sennebogen
+import qbo as qbo
+
 
 dark_yellow_css = """
 <style>
@@ -73,6 +75,24 @@ if st.button("Process File", key="2b"):
                 st.error("No tables found in the PDF.")
     else:
         st.warning("Please upload a file before submitting.")
+
+st.subheader("Input in your QBO file to turn into a Receving Report file.", divider="gray")
+file = st.file_uploader("Input a PDF file", type=["PDF"], key="4")
+if st.button("Process File", key="4b"):
+    if file is not None:
+        with st.spinner("Processing..."):
+            qbo_data = qbo.extract_values(file)
+            if qbo_data:
+                st.download_button(
+                    label="Download PDF File",
+                    data=qbo_data,
+                    file_name=f"{file.name}RecevingReport.pdf",
+                )
+            else:
+                st.error("No tables found in the PDF.")
+    else:
+        st.warning("Please upload a file before submitting.")
+
 
 st.text("Below is a work in progress...")
 st.subheader("Input in your Liebherr file to turn into an Excel file.", divider="gray")
