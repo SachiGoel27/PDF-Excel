@@ -1,34 +1,62 @@
 import pdfplumber
 import pandas as pd
-from reportlab.lib.pagesizes import letter
-from reportlab.lib import colors
-from reportlab.platypus import Table, TableStyle
-from reportlab.pdfgen import canvas
+from borb.pdf import Document, Page, PDF
+from borb.pdf.canvas.layout.text.paragraph import Paragraph
+from borb.pdf.canvas.layout.table.fixed_column_width_table import FixedColumnWidthTable
+from borb.pdf.canvas.layout.forms.text_field import TextField
+from borb.pdf import SingleColumnLayoutWithOverflow
+from borb.pdf import TableCell
+from borb.pdf import HexColor
+from decimal import Decimal
 import io
+import re
 
 def extract_values(pdf_path):
     combinded_data = []
+    subtotal = None
+    total = None
+    currency = "N/A"
+
     with pdfplumber.open(pdf_path) as pdf:
         i = 0
         for page in pdf.pages:
+            text = page.extract_text()
+            subtotal_match = re.search(r"SUBTOTAL\s+([\d,]+\.\d{2})", text)
+            if subtotal_match:
+                subtotal = subtotal_match.group(1)
+            total_match = re.search(r"TOTAL\s+(USD|EUR)\s+([\d,]+\.\d{2})", text)
+            if total_match:
+                currency = total_match.group(1) 
+                total = total_match.group(2)
+
             if i == 0:
                 height = page.height
                 width = page.width
-                page = page.within_bbox((0, 2*height/5, width, height))
-                tables = page.extract_table(table_settings={
+                cropped_page_1 = page.within_bbox((0, 2*height/5, width, height))
+                tables = cropped_page_1.extract_table(table_settings={
                     "horizontal_strategy": "text",
                     "explicit_vertical_lines": [67, 225, 270, 340, 545],
                     "snap_tolerance": 9,
                     "vertical_strategy": "explicit"
                 })
-                # debug_pic= page.to_image()
-                # debug_pic.debug_tablefinder(table_settings={
-                #     "horizontal_strategy": "text",
-                #     "explicit_vertical_lines": [67, 225, 270, 340, 545],
-                #     "snap_tolerance": 10,
-                #     "vertical_strategy": "explicit"
-                # })
-                # debug_pic.save(f"output_tables/{i}.png")
+
+                debug_pic= cropped_page_1.to_image()
+                debug_pic.debug_tablefinder(table_settings={
+                    "horizontal_strategy": "text",
+                    "explicit_vertical_lines": [67, 225, 270, 340, 545],
+                    "vertical_strategy": "explicit",
+                    "snap_tolerance": 8
+                })
+                debug_pic.save(f"output_tables/{i}.png")
+
+                cropped_page_2 = page.within_bbox((0, height/5, width, 4*height/9))
+                shipping_info = cropped_page_2.extract_table(table_settings={
+                    "horizontal_strategy": "text",
+                    "explicit_vertical_lines": [60, 210, 400, 520],
+                    "vertical_strategy": "explicit",
+                    "snap_tolerance": 8
+
+                })
             else:
                 tables = page.extract_table(table_settings={
                     "horizontal_strategy": "text",
@@ -36,101 +64,127 @@ def extract_values(pdf_path):
                     "snap_tolerance": 10,
                     "vertical_strategy": "explicit"
                 })
-            
+            i += 1
             if tables:
                 df = pd.DataFrame(tables[1:], columns=tables[0])
+                processed_data = []
+                previous_row = None
+
                 for row in df.values.tolist():
-                    if row[1].strip():
-                        combinded_data.append(row)
-            i += 1
+                    if "Approved" in row[0].strip() or "Date" in row[0].strip():
+                        continue
+                    if not row[1].strip():
+                        if previous_row:
+                            for col_index in range(2, len(row)):  
+                                previous_row[0] += f"\n{row[0].strip()}"
+                    else:
+                        processed_data.append(row)
+                        previous_row = row
+            combinded_data.extend(processed_data)
+            
+            shipping_data = []
+            if shipping_info:
+                df_ship = pd.DataFrame(shipping_info, columns=shipping_info[0])
+                for row in df_ship.values.tolist():
+                    if "Purchase" in row[0]:
+                        continue
+                    elif row[0].strip() == "" and row[1].strip() == "":
+                        continue
+                    elif "ACTIV" in row[0]:
+                        continue
+                    else:
+                        shipping_data.append(row)
+
     df = pd.DataFrame(combinded_data, columns=["Item", "Qty Order", "Each", "Total"])
     df.insert(2, "Qty Rec", "")
     df.insert(3, "Qty B/O", "")
     combinded_data = df.values.tolist()
     combinded_data.insert(0, ["Item", "Qty Order", "Qty Rec", "Qty B/O", "Each", "Total"])
-    
-    print(combinded_data)
 
     # pdf portion
 
     buffer = io.BytesIO()
 
-    c = canvas.Canvas(buffer, pagesize=letter)
+    doc = Document()
+    page = Page()
+    doc.add_page(page)
 
-    c.setFont("Helvetica-Bold", 12)
-    c.drawString(20, 750, "Equipment Reuse International, LLC")
+    layout = SingleColumnLayoutWithOverflow(page)
 
-    c.setFont("Helvetica", 12)
-    c.drawString(20, 720, "2962 Mechanic Street")
+    layout.add(Paragraph("Equipment Reuse International, LLC", font="Helvetica-Bold", font_size=Decimal(12)))
+    layout.add(Paragraph("2962 Mechanic Street", font_size=Decimal(10)))
+    layout.add(Paragraph("Lake City, PA 16423", font_size=Decimal(10)))
+    layout.add(Paragraph("scott@equip-reuse.com", font_size=Decimal(10)))
+    layout.add(Paragraph("www.equip-reuse.com", font_size=Decimal(10)))
 
-    c.drawString(20, 705, "Lake City, PA 16423")
+    layout.add(Paragraph("Receving Order", font="Helvetica-Bold", font_size=Decimal(20),font_color=HexColor("#d1a700")))
+    # print(shipping_data)
+    subheader_table = FixedColumnWidthTable(number_of_columns=3, number_of_rows=len(shipping_data))
+    for x in shipping_data:
+        try:
+            if x[0] == "":
+                x[0] = " "
+            if x[1] == "":
+                x[1] = " "
+            if x[2] == "":
+                x[2] = " "
+            subheader_table.add(TableCell(Paragraph(x[0], font_size=Decimal(11)), border_right=False, border_bottom=False,border_top=False, border_left=False))
+            subheader_table.add(TableCell(Paragraph(x[1], font_size=Decimal(11)), border_right=False, border_bottom=False,border_top=False, border_left=False))
+            subheader_table.add(TableCell(Paragraph(x[2], font_size=Decimal(11)), border_right=False, border_bottom=False,border_top=False, border_left=False))
+        except:
+            print(x)
 
-    c.drawString(20, 690, "scott@equip-reuse.com")
+    layout.add(subheader_table)
 
-    c.drawString(20, 675, "www.equip-reuse.com")
+    # table section
 
-    c.setFillColorRGB(1, 0.8, 0.2)
-    c.setFont("Helvetica-Bold", 22)
-    c.drawString(20, 640, "Purchase Order")
-
-    c.setFillColor(colors.black)
-    c.setFont("Helvetica", 15)
-    c.drawString(20, 620, "VENDOR")
-    c.drawString(220, 620, "SHIP TO")
-    c.drawString(420, 620, "P.O. NO.")
-
-    table_x, table_y = 10, 300  
-    colWidths = [150, 100, 100, 100, 80, 80]
-    row_height = 30 
-
-    table_style = TableStyle([
-    ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
-    ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-    ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-    ("GRID", (0, 0), (-1, -1), 1, colors.black),
-    ("FONTSIZE", (0, 0), (-1, -1), 10),
-    ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.beige, colors.white]),
-    ])
-
-    table = Table(combinded_data, colWidths=colWidths)
-    table.setStyle(table_style)
-    table.wrapOn(c, 500, 700)
-    table.drawOn(c, table_x, table_y)
-
-
-    table_bottom = table_y
-    table_top = table_y + (len(combinded_data) * row_height)
-    form = c.acroForm
-    for row_index, row in enumerate(combinded_data[1:], start=1):
-        field_y = table_top - (row_index * row_height) 
-
-        form.textfield(
-            name=f"qtyrec_{row_index}",
-            x=table_x + sum(colWidths[:2]) + 2,  
-            y= field_y,
-            width=colWidths[2] - 4,  
-            height=20,
-            textColor=colors.black, borderColor=colors.black, fillColor=colors.white,
-            fontSize=10,
+    data_table = FixedColumnWidthTable(
+            number_of_columns=6,
+            number_of_rows=len(combinded_data),
         )
+    
+    for header in combinded_data[0]:
+        data_table.add(Paragraph(header, font="Helvetica-Bold", font_size=Decimal(10)))
 
-        form.textfield(
-            name=f"qtybo_{row_index}",
-            x=table_x + sum(colWidths[:3]) + 2,  
-            y= field_y,
-            width=colWidths[3]-4,  
-            height=20,
-            textColor=colors.black, borderColor=colors.black, fillColor=colors.white,
-            fontSize=10,
-        )
+# Add Data Rows
+    for row_index, row in enumerate(combinded_data[1:]):
+        for col_index, cell in enumerate(row):
+            if col_index in [2, 3]:  # Editable text fields
+                data_table.add(
+                    TextField(
+                        field_name=f"field_{row_index}_{col_index}",
+                        value=cell,
+                        font_size=Decimal(8),
+                        border_width=Decimal(0.3)
+                    )
+                )
+            else:  # Regular text
+                data_table.add(TableCell(Paragraph(cell, font_size=Decimal(10))))
+    layout.add(data_table)
+    
+    layout.add(Paragraph(" "))
 
+    if subtotal:
+        amount_table = FixedColumnWidthTable(number_of_columns=2, number_of_rows=2)
+        amount_table.add(TableCell(Paragraph("SUBTOTAL: ", font_size=Decimal(11)), border_right=False, border_bottom=False,border_top=False, border_left=False))
+        amount_table.add(TableCell(Paragraph(subtotal, font_size=Decimal(11)), border_right=False, border_bottom=False,border_top=False, border_left=False))
+        amount_table.add(TableCell(Paragraph("TOTAL: ", font_size=Decimal(11)), border_right=False, border_bottom=False,border_top=False, border_left=False))
+        amount_table.add(TableCell(Paragraph(f"{currency} {total}", font_size=Decimal(11)), border_right=False, border_bottom=False,border_top=False, border_left=False))
+        layout.add(amount_table)
+    else:
+        amount_table = FixedColumnWidthTable(number_of_columns=2, number_of_rows=1)
+        amount_table.add(TableCell(Paragraph("TOTAL: ", font_size=Decimal(11)), border_right=False, border_bottom=False,border_top=False, border_left=False))
+        amount_table.add(TableCell(Paragraph(f"{currency} {total}", font_size=Decimal(11)), border_right=False, border_bottom=False,border_top=False, border_left=False))
+        layout.add(amount_table)
 
-
-    string_spacing = 20
-    c.drawString(10, table_bottom - string_spacing - 20, "Additional string 1")
-    c.drawString(10, table_bottom - string_spacing - 40, "Additional string 2")    
-
-    c.save()
-
+    layout.add(Paragraph(" "))
+    approved_table = FixedColumnWidthTable(number_of_columns=2, number_of_rows=2)
+    approved_table.add(TableCell(Paragraph("Recieved: ", font_size=Decimal(11)), border_right=False, border_bottom=False,border_top=False, border_left=False))
+    approved_table.add(TableCell(TextField(field_name="RevievedDate", font_size=Decimal(11)), border_right=False, border_bottom=False,border_top=False, border_left=False))
+    approved_table.add(TableCell(Paragraph("Checked & Scanned: ", font_size=Decimal(11)), border_right=False, border_bottom=False,border_top=False, border_left=False))
+    approved_table.add(TableCell(TextField(field_name="CheckedDate", font_size=Decimal(11)), border_right=False, border_bottom=False,border_top=False, border_left=False))
+    
+    layout.add(approved_table)
     buffer.seek(0)
+    PDF.dumps(buffer, doc)
     return buffer.getvalue()
