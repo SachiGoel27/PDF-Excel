@@ -81,7 +81,7 @@ file = st.file_uploader("Input a PDF file", type=["PDF"], key="4")
 if st.button("Process File", key="4b"):
     if file is not None:
         with st.spinner("Processing..."):
-            qbo_data = qbo.extract_values(file)
+            qbo_data = qbo.pdf_creation(file)
             if qbo_data:
                 st.download_button(
                     label="Download PDF File",

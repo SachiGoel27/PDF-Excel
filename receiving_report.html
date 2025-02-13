@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Reciving Report</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            h1, h2 { text-align: center; }
+            .info { margin-bottom: 20px; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { border: 1px solid black; padding: 8px; text-align: left; }
+            th { background-color: #f2f2f2; }
+            .total { font-weight: bold; text-align: right; }
+            input, textarea { 
+            width: 100%; 
+            border: 1px solid #000; 
+            font-size: 14px;
+            }
+        </style>
+    </head>
+    <body>
+        <p>Equipment Reuse International, LLC</p>
+        <p>2962 Mechanic Street, Lake City, PA 16423</p>
+        <p>Email: <a href="mailto:scott@equip-reuse.com">scott@equip-reuse.com</a></p>
+        <p>Website: <a href="https://www.equip-reuse.com">www.equip-reuse.com</a></p>
+
+        <h2 style="color: #d1a700;">Receiving Order</h2>
+
+        <!-- Shipping address -->
+
+        {% if shipping_data %}
+        <table>
+            <tbody>
+                {% for row in shipping_data %}
+                <tr>
+                    {% for cell in row %}
+                        <td>{{ cell }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    
+        <br>
+
+        <!-- main table -->
+
+        <table>
+            <thead>
+                <tr>
+                    {% for header in combinded_data[0] %}
+                    <th>{{ header }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in combinded_data[1:] %}
+                <tr>
+                    {% for cell in row %}
+                    <td>
+                        {% if loop.index0 in [2, 3] %}
+                            <input type="text" name="field_{{ row_index }}_{{ col_index }}" value="{{ cell }}">
+                        {% else %}
+                            {{ cell }}
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    
+        <br>
+
+        <!-- subtotal and total -->
+
+        {% if subtotal %}
+        <table>
+            <tr>
+                <td class="total">SUBTOTAL:</td>
+                <td class="total">{{ subtotal }}</td>
+            </tr>
+            <tr>
+                <td class="total">TOTAL:</td>
+                <td class="total">{{ currency }} {{ total }}</td>
+            </tr>
+        </table>
+        {% else %}
+        <table>
+            <tr>
+                <td class="total">TOTAL:</td>
+                <td class="total">{{ currency }} {{ total }}</td>
+            </tr>
+        </table>
+        {% endif %}
+
+        <br>
+
+        <!-- approval sections -->
+        <table>
+            <tr>
+                <td>Received:</td>
+                <!-- <td>_________</td> -->
+                <td><input type="text" name="ReceivedDate"></td>
+            </tr>
+            <tr>
+                <td>Checked & Scanned:</td>
+                <!-- <td>_________</td> -->
+                <td><input type="text" name="CheckedDate"></td>
+            </tr>
+        </table>
+
+
+    </body>
+</html>
