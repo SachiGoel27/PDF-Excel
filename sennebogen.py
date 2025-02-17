@@ -14,13 +14,22 @@ def extract_tables_(pdf_path):
         for page_number, page in enumerate(tqdm(pdf.pages, desc="Processing Pages")):
             try:
                 page_text = page.extract_text()
-                print(page_text.splitlines()[1] + " " + str(page_number))
-
-                print(("Pos./" in page_text.splitlines()[1]) and ("MPOS" in page_text.splitlines()[1]))
-
                 if page_text and "Inhaltsverzeichnis" in page_text:
                     continue
                 elif page_text and ("Pos./" in page_text.splitlines()[1]) and ("MPOS" in page_text.splitlines()[1]):
+                    # debug_pic = page.to_image()
+                    # debug_pic.debug_tablefinder(
+                    #     table_settings={
+                    #        "join_tolerance": 7,  
+                    #         "intersection_tolerance": 8,  
+                    #         "horizontal_strategy": "lines_strict",
+                    #         "snap_x_tolerance": 5,
+                    #         "explicit_vertical_lines": [40, 70, 110, 220, 330, 410, 500, 550]
+                    #     }
+                    # )
+                    # debug_image_path = f"output_tables/debug_page_{page_number+1}.png"
+                    # debug_pic.save(debug_image_path)
+
                     tables = page.extract_tables(table_settings= {
                             "join_tolerance": 7,  
                             "intersection_tolerance": 8,  
@@ -81,7 +90,7 @@ def extract_tables_(pdf_path):
 
                 if tables:   
                     for i, table in enumerate(tables): 
-                        print(f"Table {i+1}: Columns: {len(table[0])}, Rows: {len(table) - 1}")
+                        # print(f"Table {i+1}: Columns: {len(table[0])}, Rows: {len(table) - 1}")
                         col_count = len(table[0])                       
                         df = pd.DataFrame(table[1:], columns=table[0])
 
@@ -92,6 +101,8 @@ def extract_tables_(pdf_path):
                             if not row[0].strip() or not row[0].isdigit():
                                 if previous_row:
                                     for col_index in range(1, len(row)):
+                                        if previous_row[col_index] is None:
+                                            previous_row[col_index] = ""
                                         previous_row[col_index] += f" {row[col_index]}".strip()
                                 else:
                                     print(f"Warning: Overflow row detected without a previous row: {row}")
@@ -103,10 +114,11 @@ def extract_tables_(pdf_path):
 
             except Exception as e:
                 print(f"Error on pathge {page_number+1}: {e}")
+    
     combined_df = ""
     output_stream = ""
     col_count = len(combined_data[0])
-    print(f"First few rows of combined_data: {combined_data[:5]}")
+    # print(f"First few rows of combined_data: {combined_data[:5]}")
     if col_count == 5 or col_count == 4:
         combined_df = pd.DataFrame(combined_data, columns=["Item no.", "SeboNr", "Description", "Quantity", "Comment"])
         output_stream = BytesIO()
@@ -116,6 +128,7 @@ def extract_tables_(pdf_path):
     elif col_count == 8:
         combined_df = pd.DataFrame(combined_data, columns=["Fig./\nPos.", "No./\nIdent.", "Nomenclature", "Benennung", "Qty./\nMenge.", "Qty. Unit/", "MPOS~Remark/Bemerkung", "see page\n s. Seite"])
         output_stream = BytesIO()
+   
     # make excel pretty
     with pd.ExcelWriter(output_stream, engine='openpyxl') as writer:
         combined_df.to_excel(writer, index=False, sheet_name='Combined Output')
