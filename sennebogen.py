@@ -15,36 +15,21 @@ def extract_tables_(pdf_path):
             try:
                 page_text = page.extract_text()
                 print(page_text.splitlines()[1] + " " + str(page_number))
+
+                print(("Pos./" in page_text.splitlines()[1]) and ("MPOS" in page_text.splitlines()[1]))
+
                 if page_text and "Inhaltsverzeichnis" in page_text:
                     continue
-                
-                elif page_text and "Pos./" in page_text.splitlines()[1] and "MPOS" in page_text.splitlines()[1]:
-                    debug_pic = page.to_image()
-                    debug_pic.debug_tablefinder(
-                        table_settings={
+                elif page_text and ("Pos./" in page_text.splitlines()[1]) and ("MPOS" in page_text.splitlines()[1]):
+                    tables = page.extract_tables(table_settings= {
                             "join_tolerance": 7,  
                             "intersection_tolerance": 8,  
                             "horizontal_strategy": "lines_strict",
                             "snap_x_tolerance": 5,
-                            "explicit_vertical_lines": [40, 70, 110, 220, 340, 380, 510, 550],
-                            "explicit_horizontal_lines": [800]
-                        }
-                    )
+                            "explicit_vertical_lines": [40, 70, 110, 220, 330, 410, 500, 550]
+                    })
+                
                 elif page_text and "Pos./" in page_text.splitlines()[1]:
-                    # debug_pic = page.to_image()
-                    # debug_pic.debug_tablefinder(
-                    #     table_settings={
-                    #         "join_tolerance": 7,  
-                    #         "intersection_tolerance": 8,  
-                    #         "horizontal_strategy": "lines_strict",
-                    #         "snap_x_tolerance": 5,
-                    #         "explicit_vertical_lines": [40, 70, 110, 220, 330, 370, 410, 510, 550],
-                    #         "explicit_horizontal_lines": [800]
-                    #     }
-                    # )
-                    # debug_image_path = f"output_tables/debug_page_{page_number+1}.png"
-                    # debug_pic.save(debug_image_path)
-
                     tables = page.extract_tables(table_settings= {
                         "join_tolerance": 7,  
                         "intersection_tolerance": 8,  
