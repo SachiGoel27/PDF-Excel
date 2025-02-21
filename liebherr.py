@@ -6,58 +6,84 @@ from openpyxl.styles import Alignment, Font, Border, Side
 
 def extract_tables_(pdf_path):
     combined_data = []
-    previous_row = None
-
+    order_number = 0
     with pdfplumber.open(pdf_path) as pdf:
         for page_number, page in enumerate(tqdm(pdf.pages, desc="Processing Pages")):
             try:
-                debug_pic1 = page.to_image(resolution=300)
-                debug_pic1.debug_tablefinder(
-                    table_settings={
-                        "join_tolerance": 7,  
-                        "intersection_tolerance": 8,  
-                        "horizontal_strategy": "text",
-                        "snap_x_tolerance": 5,
-                        "explicit_horizontal_lines": [500, 800]
-                    }
-                )
-                debug_image_path = f"output_tables/debug_page_{page_number+1}.png"
-                debug_pic1.save(debug_image_path)
+                height = page.height
+                width = page.width
+                cropped_page = page.within_bbox((0, height/2, width, height))
+                tables = cropped_page.extract_table(table_settings={
+                            "join_tolerance": 7,  
+                            "intersection_tolerance": 8,  
+                            "horizontal_strategy": "text",
+                            "vertical_strategy": "lines_strict",
+                            "snap_x_tolerance": 5,
+                            "explicit_vertical_lines": [40, 555]
+                        })
+                
+                if tables:
+                    order_number=tables[0][5]
+                    df = pd.DataFrame(tables[3:])
+                    if df.shape[1] > 5:
+                        df = df.drop(df.columns[[4, 5]], axis=1)
+                    
+                    df = df[~(df.apply(lambda row: all(cell == "" for cell in row), axis=1))] 
+                    df = df[~df[0].astype(str).str.contains("Page", na=False)]
 
-
-                # table_settings={
-                #             "join_tolerance": 7,  
-                #             "intersection_tolerance": 8,  
-                #             "horizontal_strategy": "lines_strict",
-                #             "snap_x_tolerance": 5,
-                #             "explicit_vertical_lines": [40, 70, 110, 220, 340, 380, 510, 550],
-                #             "explicit_horizontal_lines": [800]
-                #         }
-
-
-                # if tables:   
-                #     for i, table in enumerate(tables): 
-                #         print(f"Table {i+1}: Columns: {len(table[0])}, Rows: {len(table) - 1}")
-                #         col_count = len(table[0])                       
-                #         df = pd.DataFrame(table[1:], columns=table[0])
-
-                #         data = df.values.tolist()
-                #         processed_data = []
-                        
-                #         for row in data:
-                #             if not row[0].strip() or not row[0].isdigit():
-                #                 if previous_row:
-                #                     for col_index in range(1, len(row)):
-                #                         previous_row[col_index] += f" {row[col_index]}".strip()
-                #                 else:
-                #                     print(f"Warning: Overflow row detected without a previous row: {row}")
-                #             else:
-                #                 processed_data.append(row)
-                #                 previous_row = row  
-
-                #         combined_data.extend(processed_data)
-
+                    data = df.values.tolist()
+                    combined_data.extend(data)
             except Exception as e:
                 print(f"Error on pathge {page_number+1}: {e}")
+    # print(combined_data)
+    print(order_number)
+    
+    for index_r, row in enumerate(combined_data):
+        combined_data[index_r][3] = f" {row[3]} ({str(order_number)})"
+    
+    combined_df = ""
+    output_stream = ""
+    combined_df = pd.DataFrame(combined_data, columns=["Pos", "Order Nr.", "Quantity", "Designation", "Serial fro", "Serial to."])
+    output_stream = BytesIO()
 
-extract_tables_("_fpi0037.fpi.pdf")
+    with pd.ExcelWriter(output_stream, engine='openpyxl') as writer:
+        combined_df.to_excel(writer, index=False, sheet_name='Combined Output')
+    
+    output_stream.seek(0)
+    from openpyxl import load_workbook
+    wb = load_workbook(output_stream)
+    sheet = wb.active
+
+    for column in sheet.columns:
+        max_length = 0
+        column_letter = column[0].column_letter 
+        for cell in column:
+            try:
+                if cell.value:
+                    max_length = max(max_length, len(str(cell.value)))
+            except Exception:
+                pass
+        adjusted_width = max_length + 2  
+        sheet.column_dimensions[column_letter].width = adjusted_width
+
+    for cell in sheet[1]: 
+        cell.font = Font(bold=True)
+
+    for row in sheet.iter_rows():
+        for cell in row:
+            cell.alignment = Alignment(horizontal='center', vertical='center')
+
+    thin_border = Border(
+        left=Side(style='thin'),
+        right=Side(style='thin'),
+        top=Side(style='thin'),
+        bottom=Side(style='thin')
+    )
+    for row in sheet.iter_rows():
+        for cell in row:
+            cell.border = thin_border
+
+    output_stream = BytesIO()
+    wb.save(output_stream)
+    output_stream.seek(0)
+    return output_stream

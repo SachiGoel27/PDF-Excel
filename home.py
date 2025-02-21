@@ -1,6 +1,7 @@
 import streamlit as st
 import sennebogen as sennebogen
 import qbo as qbo
+import liebherr as liebherr
 
 
 dark_yellow_css = """
@@ -101,7 +102,7 @@ file = st.file_uploader("Input a PDF file", type=["PDF"], key="3")
 if st.button("Process File", key="3b"):
     if file is not None:
         with st.spinner("Processing..."):
-            excel_data = sennebogen.extract_tables_(file)
+            excel_data = liebherr.extract_tables_(file)
 
             if excel_data:
                 st.download_button(
