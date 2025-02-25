@@ -3,6 +3,7 @@ import pandas as pd
 from tqdm import tqdm
 from io import BytesIO
 from openpyxl.styles import Alignment, Font, Border, Side
+import re
 
 def extract_tables_(pdf_path):
     combined_data = []
@@ -23,7 +24,7 @@ def extract_tables_(pdf_path):
                         })
                 
                 if tables:
-                    order_number=tables[0][5]
+                    order_number=tables[0][5][7:].replace(" ", "")
                     df = pd.DataFrame(tables[3:])
                     if df.shape[1] > 5:
                         df = df.drop(df.columns[[4, 5]], axis=1)
@@ -36,14 +37,27 @@ def extract_tables_(pdf_path):
             except Exception as e:
                 print(f"Error on pathge {page_number+1}: {e}")
     # print(combined_data)
-    print(order_number)
-    
     for index_r, row in enumerate(combined_data):
-        combined_data[index_r][3] = f" {row[3]} ({str(order_number)})"
+        # order no.
+        combined_data[index_r][1] = combined_data[index_r][1].replace(' ', "")
+        # quantity changes
+        combined_data[index_r][2] = combined_data[index_r][2].replace('.', "")
+        combined_data[index_r][2] = combined_data[index_r][2].replace(',', '.')
+        combined_data[index_r][2] = float(combined_data[index_r][2])
+        # group #
+        if "->" in combined_data[index_r][3]:
+            match = re.search(r"\(([^)]+)\)", combined_data[index_r][3])
+            extracted_number = match.group(1)[9:].replace(" ", "")
+            print(extracted_number)
+            combined_data[index_r].append(extracted_number)
+        else:
+            combined_data[index_r].append(" ")
+        # assembly
+        combined_data[index_r].append(order_number)
     
     combined_df = ""
     output_stream = ""
-    combined_df = pd.DataFrame(combined_data, columns=["Pos", "Order Nr.", "Quantity", "Designation", "Serial fro", "Serial to."])
+    combined_df = pd.DataFrame(combined_data, columns=["Pos", "Order Nr.", "Quantity", "Designation", "Serial from", "Serial to.", "Group #", "Assembly"])
     output_stream = BytesIO()
 
     with pd.ExcelWriter(output_stream, engine='openpyxl') as writer:
