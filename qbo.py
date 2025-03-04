@@ -25,7 +25,7 @@ def extract_values(pdf_path):
             if i == 0:
                 height = page.height
                 width = page.width
-                cropped_page_1 = page.within_bbox((0, 2*height/5, width, height))
+                cropped_page_1 = page.within_bbox((0, 2 * height / 5, width, height))
                 tables = cropped_page_1.extract_table(table_settings={
                     "horizontal_strategy": "text",
                     "explicit_vertical_lines": [67, 225, 270, 340, 545],
@@ -67,13 +67,12 @@ def extract_values(pdf_path):
                     if "Approved" in row[0].strip() or "Date" in row[0].strip():
                         continue
                     if not row[1].strip():
-                        if previous_row:
-                            for col_index in range(2, len(row)):  
-                                previous_row[0] += f"\n{row[0].strip()}"
+                        if previous_row: 
+                            previous_row[0] += f"\n{row[0].strip()}"
                     else:
                         processed_data.append(row)
                         previous_row = row
-            combinded_data.extend(processed_data)
+            # combinded_data.extend(processed_data)
             
             shipping_data = []
             if shipping_info:
@@ -87,6 +86,7 @@ def extract_values(pdf_path):
                         continue
                     else:
                         shipping_data.append(row)
+    combinded_data.extend(processed_data)
 
     df = pd.DataFrame(combinded_data, columns=["Item", "Qty Order", "Each", "Total"])
     df.insert(2, "Qty Rec", "")

@@ -11,6 +11,7 @@ def extract_tables_(pdf_path):
     with pdfplumber.open(pdf_path) as pdf:
         col_count = 0
         odd = False
+        add_col = False
         for page_number, page in enumerate(tqdm(pdf.pages, desc="Processing Pages")):
             try:
                 case1 = False
@@ -21,6 +22,7 @@ def extract_tables_(pdf_path):
                 if page_text and ("Inhaltsverzeichnis" in page_text or "overview" in page_text):
                     continue
                 elif page_text and ("Ident./" not in page_text.splitlines()[1]) and ("Bemerkung" in page_text.splitlines()[1]):
+                    # print("a")
                     tables = page.extract_tables(table_settings= {
                             "join_tolerance": 7,  
                             "intersection_tolerance": 8, 
@@ -31,6 +33,7 @@ def extract_tables_(pdf_path):
                     })
 
                 elif page_text and ("ME/" in page_text.splitlines()[1] or "Qty. Unit/" in page_text.splitlines()[1]):
+                    # print("b")
                     tables = page.extract_tables(table_settings={"join_tolerance": 7,  
                                                             "intersection_tolerance": 8,  
                                                             "horizontal_strategy": "lines_strict",
@@ -38,7 +41,8 @@ def extract_tables_(pdf_path):
                                                             "explicit_vertical_lines": [40, 70, 110, 220, 330, 365, 410, 505, 550],
                                                             "explicit_horizontal_lines": [800]
                                                             })
-                elif page_text and ("Pos./" in page_text.splitlines()[1]) and ("MPOS" in page_text.splitlines()[1]):
+                elif page_text and ("Pos./" in page_text.splitlines()[1]) and (("MPOS" in page_text.splitlines()[1]) or "Bemerkung" in page_text.splitlines()[1]):
+                    print("c")
                     tables = page.extract_tables(table_settings= {
                             "join_tolerance": 7,  
                             "intersection_tolerance": 8,  
@@ -48,6 +52,7 @@ def extract_tables_(pdf_path):
                     })
                 
                 elif page_text and "Pos./" in page_text.splitlines()[1]:
+                    # print("d")
                     tables = page.extract_tables(table_settings= {
                         "join_tolerance": 7,  
                         "intersection_tolerance": 8,  
@@ -56,6 +61,7 @@ def extract_tables_(pdf_path):
                         "explicit_vertical_lines": [40, 70, 110, 220, 330, 370, 410, 510, 550]
                     })
                 elif page_text and "Fig./" in page_text.splitlines()[1]:
+                    # print("e")
                     tables = page.extract_tables(table_settings= {
                         "join_tolerance": 7,  
                         "intersection_tolerance": 8,  
@@ -65,6 +71,7 @@ def extract_tables_(pdf_path):
                     })
                 elif page_text and ("Quanti" in page_text.splitlines()[1] or "Quanti" in page_text.splitlines()[2]):
                     odd = True
+                    # print("f")
                     if "Comment" not in page_text:
                         # no mpos (5) --> current
                         # and we need mpos (6)
@@ -104,7 +111,7 @@ def extract_tables_(pdf_path):
                                 "snap_x_tolerance": 5,
                                 "explicit_vertical_lines": [50 ,85, 180, 260, 310, 380, 470, 555]
                                 })
-                            # debug_pic = page.to_image()
+                            # _pic = page.to_image()
                             # debug_pic.debug_tablefinder(
                             #     table_settings={
                             #     "join_tolerance": 7,  
@@ -128,6 +135,7 @@ def extract_tables_(pdf_path):
                                 "explicit_vertical_lines": [43, 90, 200, 320, 370, 440, 560]
                                 })
                 elif page_text and "Comment" in page_text.splitlines()[0]:
+                    # print("g")
                     tables = page.extract_tables(table_settings={"join_tolerance": 7,  
                                                             "intersection_tolerance": 8,  
                                                             "horizontal_strategy": "lines_strict",
@@ -136,6 +144,7 @@ def extract_tables_(pdf_path):
                                                             "explicit_horizontal_lines": [800]
                                                             })
                 elif page_text and "Comment" in page_text.splitlines()[1]:
+                    # print("h")
                     tables = page.extract_tables(table_settings={"join_tolerance": 7,  
                                                             "intersection_tolerance": 8,  
                                                             "horizontal_strategy": "lines_strict",
@@ -144,13 +153,22 @@ def extract_tables_(pdf_path):
                                                             "explicit_horizontal_lines": [800]
                                                             })
                 else:
-                    tables = page.extract_tables(table_settings={"join_tolerance": 7,  
-                                                            "intersection_tolerance": 8,  
-                                                            "horizontal_strategy": "lines_strict",
-                                                            "snap_x_tolerance": 5,
-                                                            "explicit_vertical_lines": [50, 100, 235, 460, 550],
-                                                            "explicit_horizontal_lines": [800]
-                                                            })
+                    if page_text and "Benennung" in page_text.splitlines()[1]:
+                        add_col = True
+                        tables = page.extract_tables(table_settings={"intersection_tolerance": 8,  
+                                                                "horizontal_strategy": "lines_strict",
+                                                                "snap_x_tolerance": 5,
+                                                                "explicit_vertical_lines": [40, 125, 295, 465, 550],
+                                                                "explicit_horizontal_lines": [800]
+                                                                })
+                    else:
+                        tables = page.extract_tables(table_settings={"join_tolerance": 7,  
+                                                                "intersection_tolerance": 8,  
+                                                                "horizontal_strategy": "lines_strict",
+                                                                "snap_x_tolerance": 5,
+                                                                "explicit_vertical_lines": [50, 100, 235, 460, 550],
+                                                                "explicit_horizontal_lines": [800]
+                                                                })
 
                 if tables:   
                     for i, table in enumerate(tables): 
@@ -167,31 +185,34 @@ def extract_tables_(pdf_path):
                             if case4:
                                 df.insert(5, "Mpos", "")
                                     
-
+                        if add_col:
+                            df.insert(0, "Pos./", "")
+                            df.insert(4, "Qty", "")
+                            df.insert(5, "Remark", "")
+                        
                         data = df.values.tolist()
                         processed_data = []
-                        
+
                         for row in data:
                             if "Pos" in row[0].strip():
-                                continue       
-                            if not row[0].strip().isdigit():
-                                if previous_row:
-                                    for col_index in range(1, len(row)):
-                                        if previous_row[col_index] is None:
-                                            previous_row[col_index] = ""
-                                        if row[col_index]:
-                                            previous_row[col_index] += f" {row[col_index]}".strip()
+                                continue   
+                            if not(add_col):
+                                if not row[0].strip().isdigit():
+                                    if previous_row:
+                                        for col_index in range(1, len(row)):
+                                            if previous_row[col_index] is None:
+                                                previous_row[col_index] = ""
+                                            if row[col_index]:
+                                                previous_row[col_index] += f" {row[col_index]}".strip()
+                                    else:
+                                        print(f"Warning: Overflow row detected without a previous row: {row}")
                                 else:
-                                    print(f"Warning: Overflow row detected without a previous row: {row}")
-                            else:
-                                processed_data.append(row)
-                                previous_row = row  
+                                    previous_row = row  
 
                         combined_data.extend(processed_data)
 
             except Exception as e:
                 print(f"Error on pathge {page_number+1}: {e}")
-    
     combined_df = ""
     output_stream = ""
     col_count = len(combined_data[0])
