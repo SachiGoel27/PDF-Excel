@@ -33,14 +33,14 @@ def extract_values(pdf_path):
                     "vertical_strategy": "explicit"
                 })
 
-                # debug_pic= cropped_page_1.to_image()
-                # debug_pic.debug_tablefinder(table_settings={
-                #     "horizontal_strategy": "text",
-                #     "explicit_vertical_lines": [67, 225, 270, 340, 545],
-                #     "vertical_strategy": "explicit",
-                #     "snap_tolerance": 8
-                # })
-                # debug_pic.save(f"output_tables/{i}.png")
+                debug_pic= cropped_page_1.to_image()
+                debug_pic.debug_tablefinder(table_settings={
+                    "horizontal_strategy": "text",
+                    "explicit_vertical_lines": [67, 225, 270, 340, 545],
+                    "vertical_strategy": "explicit",
+                    "snap_tolerance": 8
+                })
+                debug_pic.save(f"output_tables/{i}.png")
 
                 cropped_page_2 = page.within_bbox((0, height/5, width, 4*height/9))
                 shipping_info = cropped_page_2.extract_table(table_settings={
@@ -70,9 +70,9 @@ def extract_values(pdf_path):
                         if previous_row: 
                             previous_row[0] += f"\n{row[0].strip()}"
                     else:
-                        processed_data.append(row)
-                        previous_row = row
-            # combinded_data.extend(processed_data)
+                        previous_row = row[:]
+                        processed_data.append(previous_row)
+            combinded_data.extend(processed_data)
             
             shipping_data = []
             if shipping_info:

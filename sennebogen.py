@@ -50,6 +50,18 @@ def extract_tables_(pdf_path):
                             "snap_x_tolerance": 5,
                             "explicit_vertical_lines": [40, 70, 110, 220, 340, 380, 510, 550]
                     })
+                    # debug_pic = page.to_image()
+                    # debug_pic.debug_tablefinder(
+                    #     table_settings={
+                    #     "join_tolerance": 7,  
+                    #         "intersection_tolerance": 8,  
+                    #         "horizontal_strategy": "lines_strict",
+                    #         "snap_x_tolerance": 5,
+                    #         "explicit_vertical_lines": [40, 70, 110, 220, 340, 380, 510, 550]
+                    #     }
+                    # )
+                    # debug_image_path = f"output_tables/debug_page_{page_number+1}.png"
+                    # debug_pic.save(debug_image_path)
                 
                 elif page_text and "Pos./" in page_text.splitlines()[1]:
                     # print("d")
@@ -169,11 +181,10 @@ def extract_tables_(pdf_path):
                                                                 "explicit_vertical_lines": [50, 100, 235, 460, 550],
                                                                 "explicit_horizontal_lines": [800]
                                                                 })
-
                 if tables:   
                     for i, table in enumerate(tables): 
                         # print(f"Table {i+1}: Columns: {len(table[0])}, Rows: {len(table) - 1}")
-                        col_count = len(table[0])                       
+                        col_count = len(table[0])                     
                         df = pd.DataFrame(table[1:], columns=table[0])
 
                         if odd:
@@ -192,12 +203,13 @@ def extract_tables_(pdf_path):
                         
                         data = df.values.tolist()
                         processed_data = []
-
                         for row in data:
+                            # print(f"Processing row: {row}")
                             if "Pos" in row[0].strip():
                                 continue   
                             if not(add_col):
                                 if not row[0].strip().isdigit():
+                                    # print(f"Row is not a number: {row[0]}")
                                     if previous_row:
                                         for col_index in range(1, len(row)):
                                             if previous_row[col_index] is None:
@@ -207,7 +219,9 @@ def extract_tables_(pdf_path):
                                     else:
                                         print(f"Warning: Overflow row detected without a previous row: {row}")
                                 else:
-                                    previous_row = row  
+                                    if previous_row:
+                                        processed_data.append(previous_row)  # Save previous before replacing it
+                                    previous_row = row   
 
                         combined_data.extend(processed_data)
 
