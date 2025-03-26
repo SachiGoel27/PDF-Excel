@@ -86,7 +86,6 @@ def extract_values(pdf_path):
                         continue
                     else:
                         shipping_data.append(row)
-    combinded_data.extend(processed_data)
 
     df = pd.DataFrame(combinded_data, columns=["Item", "Qty Order", "Each", "Total"])
     df.insert(2, "Qty Rec", "")
