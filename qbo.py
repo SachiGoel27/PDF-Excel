@@ -313,7 +313,7 @@ def pdf_creation(path):
     layout.add(Paragraph("scott@equip-reuse.com", font_size=Decimal(10)))
     layout.add(Paragraph("www.equip-reuse.com", font_size=Decimal(10)))
 
-    layout.add(Paragraph("Receving Order", font="Helvetica-Bold", font_size=Decimal(20),font_color=HexColor("#d1a700")))
+    layout.add(Paragraph("Receiving Order", font="Helvetica-Bold", font_size=Decimal(20),font_color=HexColor("#d1a700")))
     # print(shipping_data)
     subheader_table = FixedColumnWidthTable(number_of_columns=3, number_of_rows=len(data['shipping_data']))
     for x in data['shipping_data']:
@@ -376,7 +376,7 @@ def pdf_creation(path):
         layout.add(amount_table)
 
     approved_table = FixedColumnWidthTable(number_of_columns=2, number_of_rows=2)
-    approved_table.add(TableCell(Paragraph("Recieved: ", font_size=Decimal(11)), border_right=False, border_bottom=False,border_top=False, border_left=False))
+    approved_table.add(TableCell(Paragraph("Received: ", font_size=Decimal(11)), border_right=False, border_bottom=False,border_top=False, border_left=False))
     approved_table.add(TableCell(TextField(field_name="RevievedDate", font_size=Decimal(11)), border_right=False, border_bottom=False,border_top=False, border_left=False))
     approved_table.add(TableCell(Paragraph("Checked & Scanned: ", font_size=Decimal(11)), border_right=False, border_bottom=False,border_top=False, border_left=False))
     approved_table.add(TableCell(TextField(field_name="CheckedDate", font_size=Decimal(11)), border_right=False, border_bottom=False,border_top=False, border_left=False))
