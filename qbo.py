@@ -282,7 +282,15 @@ def extract_values(pdf_path):
 #                 return buffer.getvalue()
 #     return None
     
-
+# from borb.pdf import Document, Page, PDF
+# from borb.pdf.canvas.layout.page_layout.single_column_layout import SingleColumnLayout
+# from borb.pdf.canvas.layout.text.paragraph import Paragraph
+# from borb.pdf.canvas.layout.table.fixed_column_width_table import FixedColumnWidthTable
+# from borb.pdf.canvas.layout.forms.text_field import TextField
+# from borb.pdf.canvas.layout.table.table_cell import TableCell
+# from borb.pdf.canvas.color.color import HexColor
+# from borb.pdf.canvas.layout.layout_element import Alignment
+# from decimal import Decimal
 from borb.pdf import Document, Page, PDF
 from borb.pdf.canvas.layout.text.paragraph import Paragraph
 from borb.pdf.canvas.layout.table.fixed_column_width_table import FixedColumnWidthTable
@@ -295,6 +303,8 @@ from decimal import Decimal
 from borb.pdf.canvas.layout.page_layout.multi_column_layout import MultiColumnLayout
 from borb.pdf.canvas.geometry.rectangle import Rectangle
 from borb.pdf.canvas.layout.layout_element import Alignment
+import borb
+print(borb.__version__)
 def pdf_creation(path):
     buffer = io.BytesIO()
     data = extract_values(path)
