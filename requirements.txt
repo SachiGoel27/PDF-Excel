@@ -3,4 +3,4 @@ pandas
 tqdm
 openpyxl
 streamlit
-borb==2.1.25
+borb
