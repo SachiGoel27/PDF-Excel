@@ -95,7 +95,6 @@ if st.button("Process File", key="4b"):
         st.warning("Please upload a file before submitting.")
 
 
-st.text("Below is a work in progress...")
 st.subheader("Input in your Liebherr file to turn into an Excel file.", divider="gray")
 file = st.file_uploader("Input a PDF file", type=["PDF"], key="3")
 

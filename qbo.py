@@ -291,39 +291,178 @@ def extract_values(pdf_path):
 # from borb.pdf.canvas.color.color import HexColor
 # from borb.pdf.canvas.layout.layout_element import Alignment
 # from decimal import Decimal
-from borb.pdf import Document, Page, PDF
-from borb.pdf.canvas.layout.text.paragraph import Paragraph
-from borb.pdf.canvas.layout.table.fixed_column_width_table import FixedColumnWidthTable
-from borb.pdf.canvas.layout.forms.text_field import TextField
-from borb.pdf import SingleColumnLayoutWithOverflow
-from borb.pdf import SingleColumnLayout
-from borb.pdf import TableCell
-from borb.pdf import HexColor
+
+# from borb.pdf import Document, Page, PDF
+# from borb.pdf.canvas.layout.text.paragraph import Paragraph
+# from borb.pdf.canvas.layout.table.fixed_column_width_table import FixedColumnWidthTable
+# from borb.pdf.canvas.layout.forms.text_field import TextField
+# from borb.pdf import SingleColumnLayoutWithOverflow
+# from borb.pdf import SingleColumnLayout
+# from borb.pdf import TableCell
+# from borb.pdf import HexColor
 from decimal import Decimal
-from borb.pdf.canvas.layout.page_layout.multi_column_layout import MultiColumnLayout
-from borb.pdf.canvas.geometry.rectangle import Rectangle
-from borb.pdf.canvas.layout.layout_element import Alignment
-import borb
-print(borb.__version__)
+# from borb.pdf.canvas.layout.page_layout.multi_column_layout import MultiColumnLayout
+# from borb.pdf.canvas.geometry.rectangle import Rectangle
+# from borb.pdf.canvas.layout.layout_element import Alignment
+
+
+
+# def pdf_creation(path: str) -> bytes:
+#     """
+#     Creates a fillable PDF based on `extract_values(path)`.  Adjusted for Borb 3.x.
+#     Returns PDF bytes.
+#     """
+#     buffer = io.BytesIO()
+#     data = extract_values(path)
+
+#     # 1. Create Document & first Page
+#     doc = Document()
+#     page = Page()
+#     doc.append_page(page)  # <-- in Borb 3.x, use `append_page` instead of `add_page`
+
+#     # 2. Use SingleColumnLayout (handles overflow automatically)
+#     layout: SingleColumnLayout = SingleColumnLayout(page)
+#     # (optional) adjust margins if desired:
+#     layout.top_margin = page.get_page_info().get_height() * Decimal(0.05)
+#     layout.bottom_margin = page.get_page_info().get_height() * Decimal(0.05)
+#     layout.left_margin = page.get_page_info().get_width() * Decimal(0.10)
+#     layout.right_margin = page.get_page_info().get_width() * Decimal(0.10)
+
+#     # 3. Add header paragraphs
+#     layout.append_layout_element(Paragraph("Equipment Reuse International, LLC", font="Helvetica-Bold"))
+#     layout.append_layout_element(Paragraph("2962 Mechanic Street", font_size=Decimal(10)))
+#     layout.append_layout_element(Paragraph("Lake City, PA 16423", font_size=Decimal(10)))
+#     layout.append_layout_element(Paragraph("scott@equip-reuse.com", font_size=Decimal(10)))
+#     layout.append_layout_element(Paragraph("www.equip-reuse.com", font_size=Decimal(10)))
+
+#     layout.append_layout_element(
+#         Paragraph(
+#             "Receiving Order",
+#             font="Helvetica-Bold",
+#             font_size=Decimal(20),
+#             font_color=HexColor("#d1a700")
+#         )
+#     )
+
+#     # 4. Build the “shipping_data” subheader table (3 columns)
+#     subheader_table = FixedColumnWidthTable(number_of_columns=3, number_of_rows=len(data["shipping_data"]))
+#     for row in data["shipping_data"]:
+#         # replace empty cells with space so that Paragraph(...) doesn’t collapse
+#         a, b, c = (row[0] or " "), (row[1] or " "), (row[2] or " ")
+#         subheader_table.add(
+#             TableCell(Paragraph(a, font_size=Decimal(11)), border_right=False, border_bottom=False, border_top=False, border_left=False)
+#         )
+#         subheader_table.add(
+#             TableCell(Paragraph(b, font_size=Decimal(11)), border_right=False, border_bottom=False, border_top=False, border_left=False)
+#         )
+#         subheader_table.add(
+#             TableCell(Paragraph(c, font_size=Decimal(11)), border_right=False, border_bottom=False, border_top=False, border_left=False)
+#         )
+
+#     layout.append_layout_element(subheader_table)
+
+#     # 5. Build the “combined_data” main table (6 columns)
+#     data_table = FixedColumnWidthTable(
+#         number_of_columns=6,
+#         number_of_rows=len(data["combined_data"]),
+#         column_widths=[Decimal(2), Decimal(0.5), Decimal(1), Decimal(1), Decimal(1), Decimal(1)]
+#     )
+
+#     # 5.1. Header row
+#     for header in data["combined_data"][0]:
+#         data_table.add(Paragraph(header, font="Helvetica-Bold", font_size=Decimal(10)))
+
+#     # 5.2. Data rows
+#     for r_idx, row in enumerate(data["combined_data"][1:]):
+#         for c_idx, cell in enumerate(row):
+#             if c_idx in (2, 3):
+#                 data_table.add(
+#                     TextBox(
+#                         field_name=f"field_{r_idx}_{c_idx}",
+#                         value=str(cell),
+#                         font_size=Decimal(8),
+#                         border_width=Decimal(0.3)
+#                     )
+#                 )
+#             else:
+#                 data_table.add(
+#                     TableCell(Paragraph(str(cell), font_size=Decimal(10)))
+#                 )
+
+#     data_table.set_padding_on_all_cells(Decimal(0.5), Decimal(0.5), Decimal(0.5), Decimal(0.5))
+#     layout.append_layout_element(data_table)
+
+#     # 6. Totals / Subtotals
+#     layout.append_layout_element(Paragraph(" "))
+#     if data["subtotal"]:
+#         amount_table = FixedColumnWidthTable(number_of_columns=2, number_of_rows=2)
+#         amount_table.add(TableCell(Paragraph("SUBTOTAL:", font_size=Decimal(11)), border_right=False, border_bottom=False, border_top=False, border_left=False))
+#         amount_table.add(TableCell(Paragraph(data["subtotal"], font_size=Decimal(11)), border_right=False, border_bottom=False, border_top=False, border_left=False))
+#         amount_table.add(TableCell(Paragraph("TOTAL:", font_size=Decimal(11)), border_right=False, border_bottom=False, border_top=False, border_left=False))
+#         amount_table.add(TableCell(Paragraph(f"{data['currency']} {data['total']}", font_size=Decimal(11)), border_right=False, border_bottom=False, border_top=False, border_left=False))
+#         layout.append_layout_element(amount_table)
+#     else:
+#         amount_table = FixedColumnWidthTable(number_of_columns=2, number_of_rows=1)
+#         amount_table.add(TableCell(Paragraph("TOTAL:", font_size=Decimal(11)), border_right=False, border_bottom=False, border_top=False, border_left=False))
+#         amount_table.add(TableCell(Paragraph(f"{data['currency']} {data['total']}", font_size=Decimal(11)), border_right=False, border_bottom=False, border_top=False, border_left=False))
+#         layout.append_layout_element(amount_table)
+
+#     # 7. Approval form fields (Received / Checked & Scanned)
+#     approved_table = FixedColumnWidthTable(number_of_columns=2, number_of_rows=2)
+#     approved_table.add(TableCell(Paragraph("Received:", font_size=Decimal(11)), border_right=False, border_bottom=False, border_top=False, border_left=False))
+#     approved_table.add(TableCell(TextBox(field_name="ReceivedDate", font_size=Decimal(11)), border_right=False, border_bottom=False, border_top=False, border_left=False))
+#     approved_table.add(TableCell(Paragraph("Checked & Scanned:", font_size=Decimal(11)), border_right=False, border_bottom=False, border_top=False, border_left=False))
+#     approved_table.add(TableCell(TextBox(field_name="CheckedDate", font_size=Decimal(11)), border_right=False, border_bottom=False, border_top=False, border_left=False))
+#     layout.append_layout_element(approved_table)
+
+#     # 8. Footer with page numbers
+#     #    (SingleColumnLayout now automatically “overflows” onto new pages;
+#     #     we only need to manually re‐attach a layout to each page and add the footer.)
+#     total_pages = doc.get_document_info().get_number_of_pages()
+#     for i in range(total_pages):
+#         p = doc.get_page(i)
+#         footer_layout: SingleColumnLayout = SingleColumnLayout(p)
+#         footer_layout.append_layout_element(
+#             Paragraph(
+#                 f"Page {i+1} of {total_pages}",
+#                 font_size=Decimal(9),
+#                 font="Helvetica-Oblique",
+#                 horizontal_alignment=Alignment.RIGHT,
+#                 vertical_alignment=Alignment.BOTTOM
+#             )
+#         )
+
+#     # 9. Write out the PDF
+#     PDF.dumps(buffer, doc)
+#     buffer.seek(0)
+#     return buffer.getvalue()
+
+
+from borb.pdf import Document, Page, TextBox, SingleColumnLayout, Paragraph, PDF, FixedColumnWidthTable, Table, HexColor, LayoutElement
+from io import BytesIO
+import tempfile
+import pathlib
+# import borb
+# print(borb.__version__)
 def pdf_creation(path):
     buffer = io.BytesIO()
     data = extract_values(path)
     doc = Document()
     page = Page()
-    doc.add_page(page)
+    doc.append_page(page)
 
-    layout = SingleColumnLayoutWithOverflow(page)
+    layout = SingleColumnLayout(page)
 
-    layout.horizontal_margin = page.get_page_info().get_width() * Decimal(0.1)
-    layout.vertical_margin = page.get_page_info().get_height() * Decimal(0.05)
+    layout.horizontal_margin = page.get_size()[0] * 0.1
+    layout.vertical_margin = page.get_size()[1] * 0.05
 
-    layout.add(Paragraph("Equipment Reuse International, LLC", font="Helvetica-Bold"))
-    layout.add(Paragraph("2962 Mechanic Street", font_size=Decimal(10)))
-    layout.add(Paragraph("Lake City, PA 16423", font_size=Decimal(10)))
-    layout.add(Paragraph("scott@equip-reuse.com", font_size=Decimal(10)))
-    layout.add(Paragraph("www.equip-reuse.com", font_size=Decimal(10)))
+    layout.append_layout_element(Paragraph("Equipment Reuse International, LLC", font="Helvetica-Bold"))
+    layout.append_layout_element(Paragraph("2962 Mechanic Street", font_size=10))
+    layout.append_layout_element(Paragraph("Lake City, PA 16423", font_size=10))
+    layout.append_layout_element(Paragraph("scott@equip-reuse.com", font_size=10))
+    layout.append_layout_element(Paragraph("www.equip-reuse.com", font_size=10))
 
-    layout.add(Paragraph("Receiving Order", font="Helvetica-Bold", font_size=Decimal(20),font_color=HexColor("#d1a700")))
+    layout.append_layout_element(Paragraph("Receiving Order", font="Helvetica-Bold", font_size=20,font_color=HexColor("#d1a700")))
     # print(shipping_data)
     subheader_table = FixedColumnWidthTable(number_of_columns=3, number_of_rows=len(data['shipping_data']))
     for x in data['shipping_data']:
@@ -334,13 +473,13 @@ def pdf_creation(path):
                 x[1] = " "
             if x[2] == "":
                 x[2] = " "
-            subheader_table.add(TableCell(Paragraph(x[0], font_size=Decimal(11)), border_right=False, border_bottom=False,border_top=False, border_left=False))
-            subheader_table.add(TableCell(Paragraph(x[1], font_size=Decimal(11)), border_right=False, border_bottom=False,border_top=False, border_left=False))
-            subheader_table.add(TableCell(Paragraph(x[2], font_size=Decimal(11)), border_right=False, border_bottom=False,border_top=False, border_left=False))
+            subheader_table.append_layout_element(Table.TableCell(Paragraph(x[0], font_size=11)))
+            subheader_table.append_layout_element(Table.TableCell(Paragraph(x[1], font_size=11)))
+            subheader_table.append_layout_element(Table.TableCell(Paragraph(x[2], font_size=11)))
         except:
             print(x)
 
-    layout.add(subheader_table)
+    layout.append_layout_element(subheader_table.no_borders())
 
     # table section
 
@@ -351,62 +490,76 @@ def pdf_creation(path):
         )
     
     for header in data['combinded_data'][0]:
-        data_table.add(Paragraph(header, font="Helvetica-Bold", font_size=Decimal(10)))
+        data_table.append_layout_element(Paragraph(header, font="Helvetica-Bold", font_size=10))
 
 # Add Data Rows
     for row_index, row in enumerate(data['combinded_data'][1:]):
         for col_index, cell in enumerate(row):
             if col_index in [2, 3]:  # Editable text fields
-                data_table.add(
-                    TextField(
+                data_table.append_layout_element(
+                    TextBox(
                         field_name=f"field_{row_index}_{col_index}",
                         value=cell,
-                        font_size=Decimal(8),
-                        border_width=Decimal(0.3)
+                        font_size=8,
                     )
                 )
             else:  # Regular text
-                data_table.add(TableCell(Paragraph(cell, font_size=Decimal(10))))
-    data_table.set_padding_on_all_cells(Decimal(.5), Decimal(.5), Decimal(.5), Decimal(.5))
-    layout.add(data_table)
+                data_table.append_layout_element(Table.TableCell(Paragraph(cell, font_size=10)))
+    data_table.set_padding_on_all_cells(.5, .5, .5, .5)
+    layout.append_layout_element(data_table)
     
-    layout.add(Paragraph(" "))
+    layout.append_layout_element(Paragraph(" "))
 
     if data['subtotal']:
         amount_table = FixedColumnWidthTable(number_of_columns=2, number_of_rows=2)
-        amount_table.add(TableCell(Paragraph("SUBTOTAL: ", font_size=Decimal(11)), border_right=False, border_bottom=False,border_top=False, border_left=False))
-        amount_table.add(TableCell(Paragraph(data['subtotal'], font_size=Decimal(11)), border_right=False, border_bottom=False,border_top=False, border_left=False))
-        amount_table.add(TableCell(Paragraph("TOTAL: ", font_size=Decimal(11)), border_right=False, border_bottom=False,border_top=False, border_left=False))
-        amount_table.add(TableCell(Paragraph(f"{data['currency']} {data['total']}", font_size=Decimal(11)), border_right=False, border_bottom=False,border_top=False, border_left=False))
-        layout.add(amount_table)
+        amount_table.append_layout_element(Table.TableCell(Paragraph("SUBTOTAL: ", font_size=11)))
+        amount_table.append_layout_element(Table.TableCell(Paragraph(data['subtotal'], font_size=11)))
+        amount_table.append_layout_element(Table.TableCell(Paragraph("TOTAL: ", font_size=11)))
+        amount_table.append_layout_element(Table.TableCell(Paragraph(f"{data['currency']} {data['total']}", font_size=11)))
+        layout.append_layout_element(amount_table.no_borders())
     else:
         amount_table = FixedColumnWidthTable(number_of_columns=2, number_of_rows=1)
-        amount_table.add(TableCell(Paragraph("TOTAL: ", font_size=Decimal(11)), border_right=False, border_bottom=False,border_top=False, border_left=False))
-        amount_table.add(TableCell(Paragraph(f"{data['currency']} {data['total']}", font_size=Decimal(11)), border_right=False, border_bottom=False,border_top=False, border_left=False))
-        layout.add(amount_table)
+        amount_table.append_layout_element(Table.TableCell(Paragraph("TOTAL: ", font_size=11)))
+        amount_table.append_layout_element(Table.TableCell(Paragraph(f"{data['currency']} {data['total']}", font_size=11)))
+        layout.append_layout_element(amount_table)
 
     approved_table = FixedColumnWidthTable(number_of_columns=2, number_of_rows=2)
-    approved_table.add(TableCell(Paragraph("Received: ", font_size=Decimal(11)), border_right=False, border_bottom=False,border_top=False, border_left=False))
-    approved_table.add(TableCell(TextField(field_name="RevievedDate", font_size=Decimal(11)), border_right=False, border_bottom=False,border_top=False, border_left=False))
-    approved_table.add(TableCell(Paragraph("Checked & Scanned: ", font_size=Decimal(11)), border_right=False, border_bottom=False,border_top=False, border_left=False))
-    approved_table.add(TableCell(TextField(field_name="CheckedDate", font_size=Decimal(11)), border_right=False, border_bottom=False,border_top=False, border_left=False))
+    approved_table.append_layout_element(Table.TableCell(Paragraph("Received: ", font_size=11)))
+    approved_table.append_layout_element(Table.TableCell(TextBox(field_name="RevievedDate", font_size=11)))
+    approved_table.append_layout_element(Table.TableCell(Paragraph("Checked & Scanned: ", font_size=11)))
+    approved_table.append_layout_element(Table.TableCell(TextBox(field_name="CheckedDate", font_size=11)))
     
-    layout.add(approved_table)
+    layout.append_layout_element(approved_table)
 
-    total_pages = int(doc.get_document_info().get_number_of_pages())
+    total_pages = int(doc.get_number_of_pages())
     
     for i in range(total_pages):  
         page = doc.get_page(i)
         layout = SingleColumnLayout(page)
-        layout.add(Paragraph(f"Page {i+1} of {total_pages}", font_size = Decimal(9), font = "Helvetica-Oblique", horizontal_alignment=Alignment.RIGHT,
-                      vertical_alignment=Alignment.BOTTOM))
+        layout.append_layout_element(Paragraph(f"Page {i+1} of {total_pages}", font_size = 9, font = "Helvetica-Oblique", horizontal_alignment=LayoutElement.HorizontalAlignment.RIGHT,
+                      vertical_alignment=LayoutElement.VerticalAlignment.BOTTOM))
 
-    buffer.seek(0)
-    PDF.dumps(buffer, doc)
-    buffer.seek(0)
 
-    return buffer.getvalue()
 
+
+    with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as tmp_file:
+        tmp_path = pathlib.Path(tmp_file.name)
+            
+    # Write PDF to temporary file
+    PDF.write(what=doc, where_to=tmp_path)
+    
+    # Read the file and return bytes
+    with open(tmp_path, 'rb') as f:
+        pdf_bytes = f.read()
+    
+    # Clean up temporary file
+    tmp_path.unlink()
+    
+    return pdf_bytes
+    # buffer = BytesIO()
+    # PDF.write(what=doc, where_to=buffer)
+    # buffer.seek(0)
+    # return buffer.getvalue()
 
 # from reportlab.lib import colors 
 # from reportlab.lib.pagesizes import letter 
