@@ -439,8 +439,10 @@ from decimal import Decimal
 
 
 from borb.pdf import Document, Page, TextBox, SingleColumnLayout, Paragraph, PDF, FixedColumnWidthTable, Table, HexColor, LayoutElement, TrueTypeFont
-import tempfile
-import pathlib
+from io import BytesIO
+# import tempfile
+# import pathlib
+# import base64
 # import requests
 
 def pdf_creation(path):
@@ -558,27 +560,32 @@ def pdf_creation(path):
     # doc.add_metadata("Author", "ERI")
     # doc.add_metadata("Subject", "QBO Receving Report")
 
+    PDF.write(what=doc, where_to="output.pdf")
 
-    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp_file:
-        tmp_path = pathlib.Path(tmp_file.name)
+    with open("output.pdf", "rb") as f:
+        pdf_bytes = f.read()
 
-    try:
-        # Ensure tmp_path is a valid pathlib.Path
-        assert isinstance(tmp_path, pathlib.Path), f"Expected Path, got {type(tmp_path)}"
+    return BytesIO(pdf_bytes)
+    # with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp_file:
+    #     tmp_path = pathlib.Path(tmp_file.name)
 
-        # ✅ Write the PDF document to file
-        PDF.write(what=doc, where_to=tmp_path)
+    # try:
+    #     # Ensure tmp_path is a valid pathlib.Path
+    #     assert isinstance(tmp_path, pathlib.Path), f"Expected Path, got {type(tmp_path)}"
 
-        # ✅ Read the contents as bytes
-        with open(tmp_path, "rb") as f:
-            pdf_bytes = f.read()
+    #     # ✅ Write the PDF document to file
+    #     PDF.write(what=doc, where_to=tmp_path)
 
-    finally:
-        # ✅ Always clean up the temporary file
-        tmp_path.unlink(missing_ok=True)
+    #     # ✅ Read the contents as bytes
+    #     with open(tmp_path, "rb") as f:
+    #         pdf_bytes = f.read()
 
-    return pdf_bytes
-    # buffer = BytesIO()
+    # finally:
+    #     # ✅ Always clean up the temporary file
+    #     tmp_path.unlink(missing_ok=True)
+
+    # return pdf_bytes
+    # # buffer = BytesIO()
     # PDF.write(what=doc, where_to=buffer)
     # buffer.seek(0)
     # return buffer.getvalue()
