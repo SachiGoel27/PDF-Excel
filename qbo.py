@@ -450,14 +450,15 @@ def pdf_creation(path):
     #     ).content
     # )
     # Create a TrueTypeFont
-    font = TrueTypeFont.from_file("Yoxall-8eyM.ttf")
+    # font = TrueTypeFont.from_file("Inter/static/Inter_18pt-Medium.ttf")
 
     # open("RobotoFlex-Bold.ttf", "wb").write(
     #     requests.get(
     #         "https://github.com/google/fonts/raw/main/apache/roboto/Roboto-Bold.ttf"
     #     ).content
     # )
-    font_b = TrueTypeFont.from_file("YoxallBold-BG3B.ttf")
+    # font_b = TrueTypeFont.from_file("Inter/static/Inter_18pt-Bold.ttf")
+    # print("here")
 
     data = extract_values(path)
     doc = Document()
@@ -469,13 +470,13 @@ def pdf_creation(path):
     layout.horizontal_margin = page.get_size()[0] * 0.1
     layout.vertical_margin = page.get_size()[1] * 0.05
 
-    layout.append_layout_element(Paragraph("Equipment Reuse International, LLC", font=font_b))
-    layout.append_layout_element(Paragraph("2962 Mechanic Street", font_size=10, font=font))
-    layout.append_layout_element(Paragraph("Lake City, PA 16423", font_size=10, font=font))
-    layout.append_layout_element(Paragraph("scott@equip-reuse.com", font_size=10, font=font))
-    layout.append_layout_element(Paragraph("www.equip-reuse.com", font_size=10, font=font))
+    layout.append_layout_element(Paragraph("Equipment Reuse International, LLC"))
+    layout.append_layout_element(Paragraph("2962 Mechanic Street", font_size=10))
+    layout.append_layout_element(Paragraph("Lake City, PA 16423", font_size=10))
+    layout.append_layout_element(Paragraph("scott@equip-reuse.com", font_size=10))
+    layout.append_layout_element(Paragraph("www.equip-reuse.com", font_size=10))
 
-    layout.append_layout_element(Paragraph("Receiving Order", font=font_b, font_size=20,font_color=HexColor("#d1a700")))
+    layout.append_layout_element(Paragraph("Receiving Order", font_size=20,font_color=HexColor("#d1a700")))
     # print(shipping_data)
     subheader_table = FixedColumnWidthTable(number_of_columns=3, number_of_rows=len(data['shipping_data']))
     for x in data['shipping_data']:
@@ -486,9 +487,9 @@ def pdf_creation(path):
                 x[1] = " "
             if x[2] == "":
                 x[2] = " "
-            subheader_table.append_layout_element(Table.TableCell(Paragraph(x[0], font_size=11, font=font)))
-            subheader_table.append_layout_element(Table.TableCell(Paragraph(x[1], font_size=11, font=font)))
-            subheader_table.append_layout_element(Table.TableCell(Paragraph(x[2], font_size=11, font=font)))
+            subheader_table.append_layout_element(Table.TableCell(Paragraph(x[0], font_size=11)))
+            subheader_table.append_layout_element(Table.TableCell(Paragraph(x[1], font_size=11)))
+            subheader_table.append_layout_element(Table.TableCell(Paragraph(x[2], font_size=11)))
         except:
             print(x)
 
@@ -503,7 +504,7 @@ def pdf_creation(path):
         )
     
     for header in data['combinded_data'][0]:
-        data_table.append_layout_element(Paragraph(header, font=font_b, font_size=10))
+        data_table.append_layout_element(Paragraph(header, font_size=10))
 
 # Add Data Rows
     for row_index, row in enumerate(data['combinded_data'][1:]):
@@ -517,7 +518,7 @@ def pdf_creation(path):
                     )
                 )
             else:  # Regular text
-                data_table.append_layout_element(Table.TableCell(Paragraph(cell, font_size=10, font=font)))
+                data_table.append_layout_element(Table.TableCell(Paragraph(cell, font_size=10)))
     data_table.set_padding_on_all_cells(.5, .5, .5, .5)
     layout.append_layout_element(data_table)
     
@@ -525,21 +526,21 @@ def pdf_creation(path):
 
     if data['subtotal']:
         amount_table = FixedColumnWidthTable(number_of_columns=2, number_of_rows=2)
-        amount_table.append_layout_element(Table.TableCell(Paragraph("SUBTOTAL: ", font_size=11, font=font)))
-        amount_table.append_layout_element(Table.TableCell(Paragraph(data['subtotal'], font_size=11, font=font)))
-        amount_table.append_layout_element(Table.TableCell(Paragraph("TOTAL: ", font_size=11, font=font)))
-        amount_table.append_layout_element(Table.TableCell(Paragraph(f"{data['currency']} {data['total']}", font_size=11, font=font)))
+        amount_table.append_layout_element(Table.TableCell(Paragraph("SUBTOTAL: ", font_size=11)))
+        amount_table.append_layout_element(Table.TableCell(Paragraph(data['subtotal'], font_size=11)))
+        amount_table.append_layout_element(Table.TableCell(Paragraph("TOTAL: ", font_size=11)))
+        amount_table.append_layout_element(Table.TableCell(Paragraph(f"{data['currency']} {data['total']}", font_size=11)))
         layout.append_layout_element(amount_table.no_borders())
     else:
         amount_table = FixedColumnWidthTable(number_of_columns=2, number_of_rows=1)
-        amount_table.append_layout_element(Table.TableCell(Paragraph("TOTAL: ", font_size=11, font=font)))
-        amount_table.append_layout_element(Table.TableCell(Paragraph(f"{data['currency']} {data['total']}", font_size=11, font=font)))
+        amount_table.append_layout_element(Table.TableCell(Paragraph("TOTAL: ", font_size=11)))
+        amount_table.append_layout_element(Table.TableCell(Paragraph(f"{data['currency']} {data['total']}", font_size=11)))
         layout.append_layout_element(amount_table)
 
     approved_table = FixedColumnWidthTable(number_of_columns=2, number_of_rows=2)
-    approved_table.append_layout_element(Table.TableCell(Paragraph("Received: ", font_size=11, font=font)))
+    approved_table.append_layout_element(Table.TableCell(Paragraph("Received: ", font_size=11)))
     approved_table.append_layout_element(Table.TableCell(TextBox(field_name="RevievedDate", font_size=11)))
-    approved_table.append_layout_element(Table.TableCell(Paragraph("Checked & Scanned: ", font_size=11, font=font)))
+    approved_table.append_layout_element(Table.TableCell(Paragraph("Checked & Scanned: ", font_size=11)))
     approved_table.append_layout_element(Table.TableCell(TextBox(field_name="CheckedDate", font_size=11)))
     
     layout.append_layout_element(approved_table)
@@ -549,27 +550,31 @@ def pdf_creation(path):
     for i in range(total_pages):  
         page = doc.get_page(i)
         layout = SingleColumnLayout(page)
-        layout.append_layout_element(Paragraph(f"Page {i+1} of {total_pages}", font_size = 9, font = font, horizontal_alignment=LayoutElement.HorizontalAlignment.RIGHT,
+        layout.append_layout_element(Paragraph(f"Page {i+1} of {total_pages}", font_size = 9, horizontal_alignment=LayoutElement.HorizontalAlignment.RIGHT,
                       vertical_alignment=LayoutElement.VerticalAlignment.BOTTOM))
+
 
     # doc.add_metadata("Title", "Generated QBO Report")
     # doc.add_metadata("Author", "ERI")
     # doc.add_metadata("Subject", "QBO Receving Report")
 
 
-    with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as tmp_file:
+    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp_file:
         tmp_path = pathlib.Path(tmp_file.name)
 
     try:
-        # ✅ Only write once to avoid corrupt headers/streams
+        # Ensure tmp_path is a valid pathlib.Path
+        assert isinstance(tmp_path, pathlib.Path), f"Expected Path, got {type(tmp_path)}"
+
+        # ✅ Write the PDF document to file
         PDF.write(what=doc, where_to=tmp_path)
 
-        # ✅ Read the output cleanly
-        with open(tmp_path, 'rb') as f:
+        # ✅ Read the contents as bytes
+        with open(tmp_path, "rb") as f:
             pdf_bytes = f.read()
 
     finally:
-        # ✅ Always clean up
+        # ✅ Always clean up the temporary file
         tmp_path.unlink(missing_ok=True)
 
     return pdf_bytes

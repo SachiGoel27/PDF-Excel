@@ -6,6 +6,8 @@ from openpyxl.styles import Alignment, Font, Border, Side
 from typing import List
 from collections import defaultdict
 
+# spare parts (2).pdf
+
 def get_vertical_lines(page, min_height=10, tolerance=2):
     x_positions = []
 
@@ -223,6 +225,18 @@ def extract_tables_(pdf_path):
                         "snap_x_tolerance": 5,
                         "explicit_vertical_lines": vertical_line
                     })
+                    debug_pic = page.to_image()
+                    debug_pic.debug_tablefinder(
+                        table_settings={
+                        "horizontal_strategy": "lines_strict",
+                        "intersection_tolerance": 8,
+                        "join_tolerance": 7,
+                        "snap_x_tolerance": 5,
+                        "explicit_vertical_lines": vertical_line
+                        }
+                    )
+                    debug_image_path = f"output_tables/debug_page_{page_number+1}.png"
+                    debug_pic.save(debug_image_path)
                 # elif page_text and ("Ident./" not in page_text.splitlines()[1]) and ("Bemerkung" in page_text.splitlines()[1]):
                 #     # print("a")
                 #     tables = page.extract_tables(table_settings= {
