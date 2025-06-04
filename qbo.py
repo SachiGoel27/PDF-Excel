@@ -438,14 +438,27 @@ from decimal import Decimal
 #     return buffer.getvalue()
 
 
-from borb.pdf import Document, Page, TextBox, SingleColumnLayout, Paragraph, PDF, FixedColumnWidthTable, Table, HexColor, LayoutElement
-from io import BytesIO
+from borb.pdf import Document, Page, TextBox, SingleColumnLayout, Paragraph, PDF, FixedColumnWidthTable, Table, HexColor, LayoutElement, TrueTypeFont
 import tempfile
 import pathlib
-# import borb
-# print(borb.__version__)
+# import requests
+
 def pdf_creation(path):
-    buffer = io.BytesIO()
+    # open("RobotoFlex.ttf", "wb").write(
+    #     requests.get(
+    #         "https://github.com/google/fonts/raw/refs/heads/main/ofl/robotoflex/RobotoFlex.ttf"
+    #     ).content
+    # )
+    # Create a TrueTypeFont
+    font = TrueTypeFont.from_file("Yoxall-8eyM.ttf")
+
+    # open("RobotoFlex-Bold.ttf", "wb").write(
+    #     requests.get(
+    #         "https://github.com/google/fonts/raw/main/apache/roboto/Roboto-Bold.ttf"
+    #     ).content
+    # )
+    font_b = TrueTypeFont.from_file("YoxallBold-BG3B.ttf")
+
     data = extract_values(path)
     doc = Document()
     page = Page()
@@ -456,13 +469,13 @@ def pdf_creation(path):
     layout.horizontal_margin = page.get_size()[0] * 0.1
     layout.vertical_margin = page.get_size()[1] * 0.05
 
-    layout.append_layout_element(Paragraph("Equipment Reuse International, LLC", font="Helvetica-Bold"))
-    layout.append_layout_element(Paragraph("2962 Mechanic Street", font_size=10))
-    layout.append_layout_element(Paragraph("Lake City, PA 16423", font_size=10))
-    layout.append_layout_element(Paragraph("scott@equip-reuse.com", font_size=10))
-    layout.append_layout_element(Paragraph("www.equip-reuse.com", font_size=10))
+    layout.append_layout_element(Paragraph("Equipment Reuse International, LLC", font=font_b))
+    layout.append_layout_element(Paragraph("2962 Mechanic Street", font_size=10, font=font))
+    layout.append_layout_element(Paragraph("Lake City, PA 16423", font_size=10, font=font))
+    layout.append_layout_element(Paragraph("scott@equip-reuse.com", font_size=10, font=font))
+    layout.append_layout_element(Paragraph("www.equip-reuse.com", font_size=10, font=font))
 
-    layout.append_layout_element(Paragraph("Receiving Order", font="Helvetica-Bold", font_size=20,font_color=HexColor("#d1a700")))
+    layout.append_layout_element(Paragraph("Receiving Order", font=font_b, font_size=20,font_color=HexColor("#d1a700")))
     # print(shipping_data)
     subheader_table = FixedColumnWidthTable(number_of_columns=3, number_of_rows=len(data['shipping_data']))
     for x in data['shipping_data']:
@@ -473,9 +486,9 @@ def pdf_creation(path):
                 x[1] = " "
             if x[2] == "":
                 x[2] = " "
-            subheader_table.append_layout_element(Table.TableCell(Paragraph(x[0], font_size=11)))
-            subheader_table.append_layout_element(Table.TableCell(Paragraph(x[1], font_size=11)))
-            subheader_table.append_layout_element(Table.TableCell(Paragraph(x[2], font_size=11)))
+            subheader_table.append_layout_element(Table.TableCell(Paragraph(x[0], font_size=11, font=font)))
+            subheader_table.append_layout_element(Table.TableCell(Paragraph(x[1], font_size=11, font=font)))
+            subheader_table.append_layout_element(Table.TableCell(Paragraph(x[2], font_size=11, font=font)))
         except:
             print(x)
 
@@ -490,7 +503,7 @@ def pdf_creation(path):
         )
     
     for header in data['combinded_data'][0]:
-        data_table.append_layout_element(Paragraph(header, font="Helvetica-Bold", font_size=10))
+        data_table.append_layout_element(Paragraph(header, font=font_b, font_size=10))
 
 # Add Data Rows
     for row_index, row in enumerate(data['combinded_data'][1:]):
@@ -504,7 +517,7 @@ def pdf_creation(path):
                     )
                 )
             else:  # Regular text
-                data_table.append_layout_element(Table.TableCell(Paragraph(cell, font_size=10)))
+                data_table.append_layout_element(Table.TableCell(Paragraph(cell, font_size=10, font=font)))
     data_table.set_padding_on_all_cells(.5, .5, .5, .5)
     layout.append_layout_element(data_table)
     
@@ -512,21 +525,21 @@ def pdf_creation(path):
 
     if data['subtotal']:
         amount_table = FixedColumnWidthTable(number_of_columns=2, number_of_rows=2)
-        amount_table.append_layout_element(Table.TableCell(Paragraph("SUBTOTAL: ", font_size=11)))
-        amount_table.append_layout_element(Table.TableCell(Paragraph(data['subtotal'], font_size=11)))
-        amount_table.append_layout_element(Table.TableCell(Paragraph("TOTAL: ", font_size=11)))
-        amount_table.append_layout_element(Table.TableCell(Paragraph(f"{data['currency']} {data['total']}", font_size=11)))
+        amount_table.append_layout_element(Table.TableCell(Paragraph("SUBTOTAL: ", font_size=11, font=font)))
+        amount_table.append_layout_element(Table.TableCell(Paragraph(data['subtotal'], font_size=11, font=font)))
+        amount_table.append_layout_element(Table.TableCell(Paragraph("TOTAL: ", font_size=11, font=font)))
+        amount_table.append_layout_element(Table.TableCell(Paragraph(f"{data['currency']} {data['total']}", font_size=11, font=font)))
         layout.append_layout_element(amount_table.no_borders())
     else:
         amount_table = FixedColumnWidthTable(number_of_columns=2, number_of_rows=1)
-        amount_table.append_layout_element(Table.TableCell(Paragraph("TOTAL: ", font_size=11)))
-        amount_table.append_layout_element(Table.TableCell(Paragraph(f"{data['currency']} {data['total']}", font_size=11)))
+        amount_table.append_layout_element(Table.TableCell(Paragraph("TOTAL: ", font_size=11, font=font)))
+        amount_table.append_layout_element(Table.TableCell(Paragraph(f"{data['currency']} {data['total']}", font_size=11, font=font)))
         layout.append_layout_element(amount_table)
 
     approved_table = FixedColumnWidthTable(number_of_columns=2, number_of_rows=2)
-    approved_table.append_layout_element(Table.TableCell(Paragraph("Received: ", font_size=11)))
+    approved_table.append_layout_element(Table.TableCell(Paragraph("Received: ", font_size=11, font=font)))
     approved_table.append_layout_element(Table.TableCell(TextBox(field_name="RevievedDate", font_size=11)))
-    approved_table.append_layout_element(Table.TableCell(Paragraph("Checked & Scanned: ", font_size=11)))
+    approved_table.append_layout_element(Table.TableCell(Paragraph("Checked & Scanned: ", font_size=11, font=font)))
     approved_table.append_layout_element(Table.TableCell(TextBox(field_name="CheckedDate", font_size=11)))
     
     layout.append_layout_element(approved_table)
@@ -536,32 +549,34 @@ def pdf_creation(path):
     for i in range(total_pages):  
         page = doc.get_page(i)
         layout = SingleColumnLayout(page)
-        layout.append_layout_element(Paragraph(f"Page {i+1} of {total_pages}", font_size = 9, font = "Helvetica-Oblique", horizontal_alignment=LayoutElement.HorizontalAlignment.RIGHT,
+        layout.append_layout_element(Paragraph(f"Page {i+1} of {total_pages}", font_size = 9, font = font, horizontal_alignment=LayoutElement.HorizontalAlignment.RIGHT,
                       vertical_alignment=LayoutElement.VerticalAlignment.BOTTOM))
 
+    # doc.add_metadata("Title", "Generated QBO Report")
+    # doc.add_metadata("Author", "ERI")
+    # doc.add_metadata("Subject", "QBO Receving Report")
 
 
+    with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as tmp_file:
+        tmp_path = pathlib.Path(tmp_file.name)
 
-    # with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as tmp_file:
-    #     tmp_path = pathlib.Path(tmp_file.name)
+    try:
+        # ✅ Only write once to avoid corrupt headers/streams
+        PDF.write(what=doc, where_to=tmp_path)
 
-    # try:
-    #     # Write PDF content to the file path
-    #     PDF.write(what=doc, where_to=tmp_path)
+        # ✅ Read the output cleanly
+        with open(tmp_path, 'rb') as f:
+            pdf_bytes = f.read()
 
-    #     # Read back the PDF content as bytes
-    #     with open(tmp_path, 'rb') as f:
-    #         pdf_bytes = f.read()
+    finally:
+        # ✅ Always clean up
+        tmp_path.unlink(missing_ok=True)
 
-    # finally:
-    #     # Ensure the file is removed even if something goes wrong
-    #     tmp_path.unlink(missing_ok=True)
-
-    # return pdf_bytes
-    buffer = BytesIO()
-    PDF.write(what=doc, where_to=buffer)
-    buffer.seek(0)
-    return buffer.getvalue()
+    return pdf_bytes
+    # buffer = BytesIO()
+    # PDF.write(what=doc, where_to=buffer)
+    # buffer.seek(0)
+    # return buffer.getvalue()
 
 # from reportlab.lib import colors 
 # from reportlab.lib.pagesizes import letter 
