@@ -544,17 +544,19 @@ def pdf_creation(path):
 
     with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as tmp_file:
         tmp_path = pathlib.Path(tmp_file.name)
-            
-    # Write PDF to temporary file
-    PDF.write(what=doc, where_to=tmp_path)
-    
-    # Read the file and return bytes
-    with open(tmp_path, 'rb') as f:
-        pdf_bytes = f.read()
-    
-    # Clean up temporary file
-    tmp_path.unlink()
-    
+
+    try:
+        # Write PDF content to the file path
+        PDF.write(what=doc, where_to=tmp_path)
+
+        # Read back the PDF content as bytes
+        with open(tmp_path, 'rb') as f:
+            pdf_bytes = f.read()
+
+    finally:
+        # Ensure the file is removed even if something goes wrong
+        tmp_path.unlink(missing_ok=True)
+
     return pdf_bytes
     # buffer = BytesIO()
     # PDF.write(what=doc, where_to=buffer)
