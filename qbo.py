@@ -542,26 +542,26 @@ def pdf_creation(path):
 
 
 
-    with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as tmp_file:
-        tmp_path = pathlib.Path(tmp_file.name)
+    # with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as tmp_file:
+    #     tmp_path = pathlib.Path(tmp_file.name)
 
-    try:
-        # Write PDF content to the file path
-        PDF.write(what=doc, where_to=tmp_path)
+    # try:
+    #     # Write PDF content to the file path
+    #     PDF.write(what=doc, where_to=tmp_path)
 
-        # Read back the PDF content as bytes
-        with open(tmp_path, 'rb') as f:
-            pdf_bytes = f.read()
+    #     # Read back the PDF content as bytes
+    #     with open(tmp_path, 'rb') as f:
+    #         pdf_bytes = f.read()
 
-    finally:
-        # Ensure the file is removed even if something goes wrong
-        tmp_path.unlink(missing_ok=True)
+    # finally:
+    #     # Ensure the file is removed even if something goes wrong
+    #     tmp_path.unlink(missing_ok=True)
 
-    return pdf_bytes
-    # buffer = BytesIO()
-    # PDF.write(what=doc, where_to=buffer)
-    # buffer.seek(0)
-    # return buffer.getvalue()
+    # return pdf_bytes
+    buffer = BytesIO()
+    PDF.write(what=doc, where_to=buffer)
+    buffer.seek(0)
+    return buffer.getvalue()
 
 # from reportlab.lib import colors 
 # from reportlab.lib.pagesizes import letter 
