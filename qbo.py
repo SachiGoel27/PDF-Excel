@@ -88,8 +88,8 @@ def extract_values(pdf_path):
                         shipping_data.append(row)
 
     df = pd.DataFrame(combinded_data, columns=["Item", "Qty Order", "Each", "Total"])
-    df.insert(2, "Qty Rec", "")
-    df.insert(3, "Qty B/O", "")
+    df.insert(2, "Qty Rec", "                    ")
+    df.insert(3, "Qty B/O", "                    ")
     combinded_data = df.values.tolist()
     combinded_data.insert(0, ["Item", "Qty Order", "Qty Rec", "Qty B/O", "Each", "Total"])
 
@@ -97,6 +97,21 @@ def extract_values(pdf_path):
 
     return data
     # pdf portion
+
+from xhtml2pdf import pisa
+from io import BytesIO
+from jinja2 import Template
+
+def pdf_creation(path):
+    data = extract_values(path)
+    with open("receiving_report.html", "r") as f:
+        html_template = f.read()
+
+    html_content = Template(html_template).render(data)
+    buffer = BytesIO()
+    pisa.CreatePDF(html_content, dest=buffer)
+    buffer.seek(0)
+    return buffer.getvalue()
 
 # def pdf_creation(path):
 #     data = extract_values(path)
@@ -300,7 +315,7 @@ def extract_values(pdf_path):
 # from borb.pdf import SingleColumnLayout
 # from borb.pdf import TableCell
 # from borb.pdf import HexColor
-from decimal import Decimal
+# from decimal import Decimal
 # from borb.pdf.canvas.layout.page_layout.multi_column_layout import MultiColumnLayout
 # from borb.pdf.canvas.geometry.rectangle import Rectangle
 # from borb.pdf.canvas.layout.layout_element import Alignment
@@ -438,134 +453,114 @@ from decimal import Decimal
 #     return buffer.getvalue()
 
 
-from borb.pdf import Document, Page, TextBox, SingleColumnLayout, Paragraph, PDF, FixedColumnWidthTable, Table, HexColor, LayoutElement, TrueTypeFont
-from io import BytesIO
+# from borb.pdf import Document, Page, TextBox, SingleColumnLayout, Paragraph, PDF, FixedColumnWidthTable, Table, RGBColor, LayoutElement
+# from io import BytesIO
 # import tempfile
 # import pathlib
 # import base64
 # import requests
 
-def pdf_creation(path):
-    # open("RobotoFlex.ttf", "wb").write(
-    #     requests.get(
-    #         "https://github.com/google/fonts/raw/refs/heads/main/ofl/robotoflex/RobotoFlex.ttf"
-    #     ).content
-    # )
-    # Create a TrueTypeFont
-    # font = TrueTypeFont.from_file("Inter/static/Inter_18pt-Medium.ttf")
+# def pdf_creation(path):
 
-    # open("RobotoFlex-Bold.ttf", "wb").write(
-    #     requests.get(
-    #         "https://github.com/google/fonts/raw/main/apache/roboto/Roboto-Bold.ttf"
-    #     ).content
-    # )
-    # font_b = TrueTypeFont.from_file("Inter/static/Inter_18pt-Bold.ttf")
-    # print("here")
+#     data = extract_values(path)
+#     doc = Document()
+#     page = Page()
+#     doc.append_page(page)
 
-    data = extract_values(path)
-    doc = Document()
-    page = Page()
-    doc.append_page(page)
+#     layout = SingleColumnLayout(page)
 
-    layout = SingleColumnLayout(page)
+#     layout.horizontal_margin = page.get_size()[0] * 0.1
+#     layout.vertical_margin = page.get_size()[1] * 0.05
 
-    layout.horizontal_margin = page.get_size()[0] * 0.1
-    layout.vertical_margin = page.get_size()[1] * 0.05
+#     layout.append_layout_element(Paragraph("Equipment Reuse International, LLC"))
+#     layout.append_layout_element(Paragraph("2962 Mechanic Street", font_size=10))
+#     layout.append_layout_element(Paragraph("Lake City, PA 16423", font_size=10))
+#     layout.append_layout_element(Paragraph("scott@equip-reuse.com", font_size=10))
+#     layout.append_layout_element(Paragraph("www.equip-reuse.com", font_size=10))
 
-    layout.append_layout_element(Paragraph("Equipment Reuse International, LLC"))
-    layout.append_layout_element(Paragraph("2962 Mechanic Street", font_size=10))
-    layout.append_layout_element(Paragraph("Lake City, PA 16423", font_size=10))
-    layout.append_layout_element(Paragraph("scott@equip-reuse.com", font_size=10))
-    layout.append_layout_element(Paragraph("www.equip-reuse.com", font_size=10))
+#     layout.append_layout_element(Paragraph("Receiving Order", font_size=20,font_color=RGBColor(0.82, 0.66, 0.0)))
+#     # print(shipping_data)
+#     subheader_table = FixedColumnWidthTable(number_of_columns=3, number_of_rows=len(data['shipping_data']))
+#     for x in data['shipping_data']:
+#         try:
+#             if x[0] == "":
+#                 x[0] = " "
+#             if x[1] == "":
+#                 x[1] = " "
+#             if x[2] == "":
+#                 x[2] = " "
+#             subheader_table.append_layout_element(Table.TableCell(Paragraph(x[0], font_size=11)))
+#             subheader_table.append_layout_element(Table.TableCell(Paragraph(x[1], font_size=11)))
+#             subheader_table.append_layout_element(Table.TableCell(Paragraph(x[2], font_size=11)))
+#         except:
+#             print(x)
 
-    layout.append_layout_element(Paragraph("Receiving Order", font_size=20,font_color=HexColor("#d1a700")))
-    # print(shipping_data)
-    subheader_table = FixedColumnWidthTable(number_of_columns=3, number_of_rows=len(data['shipping_data']))
-    for x in data['shipping_data']:
-        try:
-            if x[0] == "":
-                x[0] = " "
-            if x[1] == "":
-                x[1] = " "
-            if x[2] == "":
-                x[2] = " "
-            subheader_table.append_layout_element(Table.TableCell(Paragraph(x[0], font_size=11)))
-            subheader_table.append_layout_element(Table.TableCell(Paragraph(x[1], font_size=11)))
-            subheader_table.append_layout_element(Table.TableCell(Paragraph(x[2], font_size=11)))
-        except:
-            print(x)
+#     layout.append_layout_element(subheader_table.no_borders())
 
-    layout.append_layout_element(subheader_table.no_borders())
+#     # table section
 
-    # table section
-
-    data_table = FixedColumnWidthTable(
-            number_of_columns=6,
-            number_of_rows=len(data['combinded_data']),
-            column_widths=[Decimal(2), Decimal(.5), Decimal(1), Decimal(1), Decimal(1), Decimal(1)]
-        )
+#     data_table = FixedColumnWidthTable(
+#             number_of_columns=6,
+#             number_of_rows=len(data['combinded_data']),
+#             column_widths=[Decimal(2), Decimal(.5), Decimal(1), Decimal(1), Decimal(1), Decimal(1)]
+#         )
     
-    for header in data['combinded_data'][0]:
-        data_table.append_layout_element(Paragraph(header, font_size=10))
+#     for header in data['combinded_data'][0]:
+#         data_table.append_layout_element(Paragraph(header, font_size=10))
 
-# Add Data Rows
-    for row_index, row in enumerate(data['combinded_data'][1:]):
-        for col_index, cell in enumerate(row):
-            if col_index in [2, 3]:  # Editable text fields
-                data_table.append_layout_element(
-                    TextBox(
-                        field_name=f"field_{row_index}_{col_index}",
-                        value=cell,
-                        font_size=8,
-                    )
-                )
-            else:  # Regular text
-                data_table.append_layout_element(Table.TableCell(Paragraph(cell, font_size=10)))
-    data_table.set_padding_on_all_cells(.5, .5, .5, .5)
-    layout.append_layout_element(data_table)
+# # Add Data Rows
+#     for row_index, row in enumerate(data['combinded_data'][1:]):
+#         for col_index, cell in enumerate(row):
+#             if col_index in [2, 3]:  # Editable text fields
+#                 data_table.append_layout_element(
+#                     TextBox(
+#                         field_name=f"field_{row_index}_{col_index}",
+#                         value=cell,
+#                         font_size=8,
+#                     )
+#                 )
+#             else:  # Regular text
+#                 data_table.append_layout_element(Table.TableCell(Paragraph(cell, font_size=10)))
+#     data_table.set_padding_on_all_cells(.5, .5, .5, .5)
+#     layout.append_layout_element(data_table)
     
-    layout.append_layout_element(Paragraph(" "))
+#     layout.append_layout_element(Paragraph(" "))
 
-    if data['subtotal']:
-        amount_table = FixedColumnWidthTable(number_of_columns=2, number_of_rows=2)
-        amount_table.append_layout_element(Table.TableCell(Paragraph("SUBTOTAL: ", font_size=11)))
-        amount_table.append_layout_element(Table.TableCell(Paragraph(data['subtotal'], font_size=11)))
-        amount_table.append_layout_element(Table.TableCell(Paragraph("TOTAL: ", font_size=11)))
-        amount_table.append_layout_element(Table.TableCell(Paragraph(f"{data['currency']} {data['total']}", font_size=11)))
-        layout.append_layout_element(amount_table.no_borders())
-    else:
-        amount_table = FixedColumnWidthTable(number_of_columns=2, number_of_rows=1)
-        amount_table.append_layout_element(Table.TableCell(Paragraph("TOTAL: ", font_size=11)))
-        amount_table.append_layout_element(Table.TableCell(Paragraph(f"{data['currency']} {data['total']}", font_size=11)))
-        layout.append_layout_element(amount_table)
+#     if data['subtotal']:
+#         amount_table = FixedColumnWidthTable(number_of_columns=2, number_of_rows=2)
+#         amount_table.append_layout_element(Table.TableCell(Paragraph("SUBTOTAL: ", font_size=11)))
+#         amount_table.append_layout_element(Table.TableCell(Paragraph(data['subtotal'], font_size=11)))
+#         amount_table.append_layout_element(Table.TableCell(Paragraph("TOTAL: ", font_size=11)))
+#         amount_table.append_layout_element(Table.TableCell(Paragraph(f"{data['currency']} {data['total']}", font_size=11)))
+#         layout.append_layout_element(amount_table.no_borders())
+#     else:
+#         amount_table = FixedColumnWidthTable(number_of_columns=2, number_of_rows=1)
+#         amount_table.append_layout_element(Table.TableCell(Paragraph("TOTAL: ", font_size=11)))
+#         amount_table.append_layout_element(Table.TableCell(Paragraph(f"{data['currency']} {data['total']}", font_size=11)))
+#         layout.append_layout_element(amount_table)
 
-    approved_table = FixedColumnWidthTable(number_of_columns=2, number_of_rows=2)
-    approved_table.append_layout_element(Table.TableCell(Paragraph("Received: ", font_size=11)))
-    approved_table.append_layout_element(Table.TableCell(TextBox(field_name="RevievedDate", font_size=11)))
-    approved_table.append_layout_element(Table.TableCell(Paragraph("Checked & Scanned: ", font_size=11)))
-    approved_table.append_layout_element(Table.TableCell(TextBox(field_name="CheckedDate", font_size=11)))
+#     approved_table = FixedColumnWidthTable(number_of_columns=2, number_of_rows=2)
+#     approved_table.append_layout_element(Table.TableCell(Paragraph("Received: ", font_size=11)))
+#     approved_table.append_layout_element(Table.TableCell(TextBox(field_name="RevievedDate", font_size=11)))
+#     approved_table.append_layout_element(Table.TableCell(Paragraph("Checked & Scanned: ", font_size=11)))
+#     approved_table.append_layout_element(Table.TableCell(TextBox(field_name="CheckedDate", font_size=11)))
     
-    layout.append_layout_element(approved_table)
+#     layout.append_layout_element(approved_table)
 
-    total_pages = int(doc.get_number_of_pages())
+#     total_pages = int(doc.get_number_of_pages())
     
-    for i in range(total_pages):  
-        page = doc.get_page(i)
-        layout = SingleColumnLayout(page)
-        layout.append_layout_element(Paragraph(f"Page {i+1} of {total_pages}", font_size = 9, horizontal_alignment=LayoutElement.HorizontalAlignment.RIGHT,
-                      vertical_alignment=LayoutElement.VerticalAlignment.BOTTOM))
+#     for i in range(total_pages):  
+#         page = doc.get_page(i)
+#         layout = SingleColumnLayout(page)
+#         layout.append_layout_element(Paragraph(f"Page {i+1} of {total_pages}", font_size = 9, horizontal_alignment=LayoutElement.HorizontalAlignment.RIGHT,
+#                       vertical_alignment=LayoutElement.VerticalAlignment.BOTTOM))
 
+#     PDF.write(what=doc, where_to="output.pdf")
 
-    # doc.add_metadata("Title", "Generated QBO Report")
-    # doc.add_metadata("Author", "ERI")
-    # doc.add_metadata("Subject", "QBO Receving Report")
+#     with open("output.pdf", "rb") as f:
+#         pdf_bytes = f.read()
 
-    PDF.write(what=doc, where_to="output.pdf")
-
-    with open("output.pdf", "rb") as f:
-        pdf_bytes = f.read()
-
-    return BytesIO(pdf_bytes)
+#     return BytesIO(pdf_bytes)
     # with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp_file:
     #     tmp_path = pathlib.Path(tmp_file.name)
 

@@ -1,116 +1,243 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="UTF-8">
-        <title>Reciving Report</title>
-        <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            h1, h2 { text-align: center; }
-            .info { margin-bottom: 20px; }
-            table { width: 100%; border-collapse: collapse; }
-            th, td { border: 1px solid black; padding: 8px; text-align: left; }
-            th { background-color: #f2f2f2; }
-            .total { font-weight: bold; text-align: right; }
-            input, textarea { 
-            width: 100%; 
-            border: 1px solid #000; 
-            font-size: 14px;
+<head>
+    <meta charset="UTF-8" />
+    <title>Receiving Report</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 1.5cm;
+            @frame footer {
+                -pdf-frame-content: footerContent;
+                bottom: .5cm;
+                margin-left: 1cm;
+                margin-right: 1cm;
+                height: 1cm;
             }
-        </style>
-    </head>
-    <body>
-        <p>Equipment Reuse International, LLC</p>
+        }
+        /* ─────────────────────────────────────────────────────────
+           Base PDF styling (xhtml2pdf‐compatible)
+        ───────────────────────────────────────────────────────── */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            margin-bottom: 60px; /* Leave space for footer */
+            font-size: 12px;
+            position: relative;
+        }
+
+        /* ─────────────────────────────────────────────────────────
+           Footer with Page Number (fixed on every page for xhtml2pdf)
+        ───────────────────────────────────────────────────────── */
+        /* .footer {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 11px;
+            color: #555;
+        } */
+
+        h2 {
+            text-align: center;
+            color: #d1a700;
+            font-size: 30px;      /* Larger title */
+            margin-bottom: 20px;
+        }
+
+        .info {
+            text-align: left;
+            margin-bottom: 30px;
+            line-height: 1.4;
+        }
+
+        /* ─────────────────────────────────────────────────────────
+           "Shipping address" block (no borders)
+        ───────────────────────────────────────────────────────── */
+        table.no-border {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table.no-border td {
+            border: none;
+            padding: 2px 0;
+            font-size: 12px;
+        }
+
+        /* ─────────────────────────────────────────────────────────
+           Main Items Table (6 fixed‐width columns) - UPDATED WIDTHS
+        ───────────────────────────────────────────────────────── */
+        table.items {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        /* Redistributed column widths for better readability */
+        /* table.items colgroup col:nth-child(1) { width: 50%; }   
+        table.items colgroup col:nth-child(2) { width: 10%; }  
+        table.items colgroup col:nth-child(3) { width: 10%; }  
+        table.items colgroup col:nth-child(4) { width: 10%; }  
+        table.items colgroup col:nth-child(5) { width: 10%; } 
+        table.items colgroup col:nth-child(6) { width: 10%; }   */
+
+        table.items th,
+        table.items td {
+            border: 1px solid #000;
+            padding: 2px 2px;
+            vertical-align: top;
+            text-align: left;
+            font-size: 12px;
+            word-wrap: break-word;
+        }
+        table.items th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        /* Center align quantity and price columns */
+        /* table.items td:nth-child(3),
+        table.items td:nth-child(4),
+        table.items td:nth-child(5),
+        table.items td:nth-child(6),
+        table.items th:nth-child(3),
+        table.items th:nth-child(4),
+        table.items th:nth-child(5),
+        table.items th:nth-child(6) {
+            text-align: center;
+        } */
+
+        /* ─────────────────────────────────────────────────────────
+           Subtotal / Total Table
+        ───────────────────────────────────────────────────────── */
+        table.totals {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table.totals td {
+            border: none;
+            font-size: 12px;
+            padding: 4px 6px;
+        }
+        table.totals td.label {
+            text-align: left;
+            font-weight: bold;
+        }
+        table.totals td.value {
+            text-align: left;
+            font-weight: bold;
+            min-width: 60px;
+        }
+
+        /* ─────────────────────────────────────────────────────────
+           Approval lines (no borders)
+        ───────────────────────────────────────────────────────── */
+        table.approval {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 40px;
+        }
+        table.approval td {
+            border: none;
+            padding: 6px 0;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ─────────────────────────────────────────────────────────
+         1) Company Info (upper‐left)
+    ───────────────────────────────────────────────────────── -->
+    <div class="info">
+        <p><strong>Equipment Reuse International, LLC</strong></p>
         <p>2962 Mechanic Street, Lake City, PA 16423</p>
         <p>Email: <a href="mailto:scott@equip-reuse.com">scott@equip-reuse.com</a></p>
         <p>Website: <a href="https://www.equip-reuse.com">www.equip-reuse.com</a></p>
+    </div>
 
-        <h2 style="color: #d1a700;">Receiving Order</h2>
+    <!-- ─────────────────────────────────────────────────────────
+         2) Title
+    ───────────────────────────────────────────────────────── -->
+    <h2>Receiving Report</h2>
 
-        <!-- Shipping address -->
-
-        {% if shipping_data %}
-        <table>
-            <tbody>
-                {% for row in shipping_data %}
-                <tr>
-                    {% for cell in row %}
-                        <td>{{ cell }}</td>
-                    {% endfor %}
-                </tr>
+    <!-- ─────────────────────────────────────────────────────────
+         3) Shipping Address Block (no borders)
+    ───────────────────────────────────────────────────────── -->
+    {% if shipping_data %}
+    <table class="no-border">
+        <tbody>
+            {% for row in shipping_data %}
+            <tr>
+                {% for cell in row %}
+                <td>{{ cell }}</td>
                 {% endfor %}
-            </tbody>
-        </table>
-        {% endif %}
-    
-        <br>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
 
-        <!-- main table -->
-
-        <table>
-            <thead>
-                <tr>
-                    {% for header in combinded_data[0] %}
-                    <th>{{ header }}</th>
-                    {% endfor %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in combinded_data[1:] %}
-                <tr>
-                    {% for cell in row %}
-                    <td>
-                        {% if loop.index0 in [2, 3] %}
-                            <input type="text" name="field_{{ row_index }}_{{ col_index }}" value="{{ cell }}">
-                        {% else %}
-                            {{ cell }}
-                        {% endif %}
-                    </td>
-                    {% endfor %}
-                </tr>
+    <!-- ─────────────────────────────────────────────────────────
+         4) Main Items Table (6 columns, fixed‐width)
+    ───────────────────────────────────────────────────────── -->
+    <table class="items">
+        <thead>
+            <tr>
+                {% for header in combinded_data[0] %}
+                <th style="{% if loop.index == 1 %}width: 35%;{% elif loop.index == 2 %}width: 13%;{% elif loop.index == 3 %}width: 13%;{% elif loop.index == 4 %}width: 13%;{% elif loop.index == 5 %}width: 13%;{% elif loop.index == 6 %}width: 13%;{% endif %}">{{ header }}</th>
                 {% endfor %}
-            </tbody>
-        </table>
-    
-        <br>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in combinded_data[1:] %}
+            <tr>
+                {% for cell in row %}
+                <td style="{% if loop.index == 1 %}width: 35%;{% elif loop.index == 2 %}width: 13%;{% elif loop.index == 3 %}width: 13%;{% elif loop.index == 4 %}width: 13%;{% elif loop.index == 5 %}width: 13%;{% elif loop.index == 6 %}width: 13%;{% endif %}">{{ cell|default("&nbsp;") }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 
-        <!-- subtotal and total -->
-
+    <!-- ─────────────────────────────────────────────────────────
+         5) Subtotal / Total
+    ───────────────────────────────────────────────────────── -->
+    <table class="totals">
         {% if subtotal %}
-        <table>
-            <tr>
-                <td class="total">SUBTOTAL:</td>
-                <td class="total">{{ subtotal }}</td>
-            </tr>
-            <tr>
-                <td class="total">TOTAL:</td>
-                <td class="total">{{ currency }} {{ total }}</td>
-            </tr>
-        </table>
-        {% else %}
-        <table>
-            <tr>
-                <td class="total">TOTAL:</td>
-                <td class="total">{{ currency }} {{ total }}</td>
-            </tr>
-        </table>
+        <tr>
+            <td class="label" colspan="5">SUBTOTAL:</td>
+            <td class="value">{{ subtotal }}</td>
+        </tr>
         {% endif %}
+        <tr>
+            <td class="label" colspan="5">TOTAL:</td>
+            <td class="value">{{ currency }} {{ total }}</td>
+        </tr>
+    </table>
 
-        <br>
+    <!-- ─────────────────────────────────────────────────────────
+         6) Approval Lines
+    ───────────────────────────────────────────────────────── -->
+    <table class="approval">
+        <tr>
+            <td>Received:</td>
+            <td>_________________________</td>
+        </tr>
+        <tr>
+            <td>Checked &amp; Scanned:</td>
+            <td>_________________________</td>
+        </tr>
+    </table>
 
-        <!-- approval sections -->
-        <table>
-            <tr>
-                <td>Received:</td>
-                <!-- <td>_________</td> -->
-                <td><input type="text" name="ReceivedDate"></td>
-            </tr>
-            <tr>
-                <td>Checked & Scanned:</td>
-                <!-- <td>_________</td> -->
-                <td><input type="text" name="CheckedDate"></td>
-            </tr>
-        </table>
+    <!-- ─────────────────────────────────────────────────────────
+         7) Fixed Footer with Page Numbers on Every Page (xhtml2pdf format)
+    ───────────────────────────────────────────────────────── -->
+    <div id="footerContent">
+        Page <pdf:pagenumber example="00"/> of <pdf:pagecount example="00"/>
+    </div>
 
-
-    </body>
+</body>
 </html>
