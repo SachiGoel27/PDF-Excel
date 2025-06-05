@@ -9,9 +9,8 @@
             margin: 1.5cm;
             @frame footer {
                 -pdf-frame-content: footerContent;
-                bottom: .5cm;
                 margin-left: 1cm;
-                margin-right: 1cm;
+                bottom: .5cm;
                 height: 1cm;
             }
         }
@@ -126,10 +125,18 @@
     {% endif %}
 
     <table class="items">
+        <colgroup>
+            <col style="width: 35%;" />
+            <col style="width: 13%;" />
+            <col style="width: 13%;" />
+            <col style="width: 13%;" />
+            <col style="width: 13%;" />
+            <col style="width: 13%;" />
+        </colgroup>
         <thead>
             <tr>
                 {% for header in combinded_data[0] %}
-                <th style="{% if loop.index == 1 %}width: 35%;{% elif loop.index == 2 %}width: 13%;{% elif loop.index == 3 %}width: 13%;{% elif loop.index == 4 %}width: 13%;{% elif loop.index == 5 %}width: 13%;{% elif loop.index == 6 %}width: 13%;{% endif %}">{{ header }}</th>
+                <th >{{ header }}</th>
                 {% endfor %}
             </tr>
         </thead>
@@ -137,7 +144,7 @@
             {% for row in combinded_data[1:] %}
             <tr>
                 {% for cell in row %}
-                <td style="{% if loop.index == 1 %}width: 35%;{% elif loop.index == 2 %}width: 13%;{% elif loop.index == 3 %}width: 13%;{% elif loop.index == 4 %}width: 13%;{% elif loop.index == 5 %}width: 13%;{% elif loop.index == 6 %}width: 13%;{% endif %}">{{ cell|default("&nbsp;") }}</td>
+                <td >{{ cell|default("&nbsp;") }}</td>
                 {% endfor %}
             </tr>
             {% endfor %}
