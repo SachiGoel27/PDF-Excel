@@ -15,29 +15,11 @@
                 height: 1cm;
             }
         }
-        /* ─────────────────────────────────────────────────────────
-           Base PDF styling (xhtml2pdf‐compatible)
-        ───────────────────────────────────────────────────────── */
         body {
             font-family: Arial, sans-serif;
-            margin: 40px;
-            margin-bottom: 60px; /* Leave space for footer */
             font-size: 12px;
             position: relative;
         }
-
-        /* ─────────────────────────────────────────────────────────
-           Footer with Page Number (fixed on every page for xhtml2pdf)
-        ───────────────────────────────────────────────────────── */
-        /* .footer {
-            position: fixed;
-            bottom: 20px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            font-size: 11px;
-            color: #555;
-        } */
 
         h2 {
             text-align: center;
@@ -52,9 +34,6 @@
             line-height: 1.4;
         }
 
-        /* ─────────────────────────────────────────────────────────
-           "Shipping address" block (no borders)
-        ───────────────────────────────────────────────────────── */
         table.no-border {
             width: 100%;
             border-collapse: collapse;
@@ -66,21 +45,11 @@
             font-size: 12px;
         }
 
-        /* ─────────────────────────────────────────────────────────
-           Main Items Table (6 fixed‐width columns) - UPDATED WIDTHS
-        ───────────────────────────────────────────────────────── */
         table.items {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
         }
-        /* Redistributed column widths for better readability */
-        /* table.items colgroup col:nth-child(1) { width: 50%; }   
-        table.items colgroup col:nth-child(2) { width: 10%; }  
-        table.items colgroup col:nth-child(3) { width: 10%; }  
-        table.items colgroup col:nth-child(4) { width: 10%; }  
-        table.items colgroup col:nth-child(5) { width: 10%; } 
-        table.items colgroup col:nth-child(6) { width: 10%; }   */
 
         table.items th,
         table.items td {
@@ -96,21 +65,6 @@
             font-weight: bold;
         }
 
-        /* Center align quantity and price columns */
-        /* table.items td:nth-child(3),
-        table.items td:nth-child(4),
-        table.items td:nth-child(5),
-        table.items td:nth-child(6),
-        table.items th:nth-child(3),
-        table.items th:nth-child(4),
-        table.items th:nth-child(5),
-        table.items th:nth-child(6) {
-            text-align: center;
-        } */
-
-        /* ─────────────────────────────────────────────────────────
-           Subtotal / Total Table
-        ───────────────────────────────────────────────────────── */
         table.totals {
             width: 100%;
             border-collapse: collapse;
@@ -148,9 +102,6 @@
 </head>
 <body>
 
-    <!-- ─────────────────────────────────────────────────────────
-         1) Company Info (upper‐left)
-    ───────────────────────────────────────────────────────── -->
     <div class="info">
         <p><strong>Equipment Reuse International, LLC</strong></p>
         <p>2962 Mechanic Street, Lake City, PA 16423</p>
@@ -158,14 +109,8 @@
         <p>Website: <a href="https://www.equip-reuse.com">www.equip-reuse.com</a></p>
     </div>
 
-    <!-- ─────────────────────────────────────────────────────────
-         2) Title
-    ───────────────────────────────────────────────────────── -->
     <h2>Receiving Report</h2>
 
-    <!-- ─────────────────────────────────────────────────────────
-         3) Shipping Address Block (no borders)
-    ───────────────────────────────────────────────────────── -->
     {% if shipping_data %}
     <table class="no-border">
         <tbody>
@@ -180,9 +125,6 @@
     </table>
     {% endif %}
 
-    <!-- ─────────────────────────────────────────────────────────
-         4) Main Items Table (6 columns, fixed‐width)
-    ───────────────────────────────────────────────────────── -->
     <table class="items">
         <thead>
             <tr>
@@ -202,9 +144,6 @@
         </tbody>
     </table>
 
-    <!-- ─────────────────────────────────────────────────────────
-         5) Subtotal / Total
-    ───────────────────────────────────────────────────────── -->
     <table class="totals">
         {% if subtotal %}
         <tr>
@@ -218,9 +157,6 @@
         </tr>
     </table>
 
-    <!-- ─────────────────────────────────────────────────────────
-         6) Approval Lines
-    ───────────────────────────────────────────────────────── -->
     <table class="approval">
         <tr>
             <td>Received:</td>
@@ -232,9 +168,6 @@
         </tr>
     </table>
 
-    <!-- ─────────────────────────────────────────────────────────
-         7) Fixed Footer with Page Numbers on Every Page (xhtml2pdf format)
-    ───────────────────────────────────────────────────────── -->
     <div id="footerContent">
         Page <pdf:pagenumber example="00"/> of <pdf:pagecount example="00"/>
     </div>
