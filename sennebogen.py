@@ -29,6 +29,18 @@ def get_vertical_lines(page, min_height=10, tolerance=2):
 
     return clustered
 
+# def infer_vertical_lines_from_text(page, tolerance=5):
+#     words = page.extract_words()
+#     x_positions = [round(word['x0']) for word in words]
+
+#     # Sort and cluster x positions
+#     x_positions = sorted(set(x_positions))
+#     clustered = []
+#     for x in x_positions:
+#         if not clustered or abs(x - clustered[-1]) > tolerance:
+#             clustered.append(x)
+
+#     return clustered
 
 def get_vertical_lines_based(page, right_edge=560, tolerance=2):
     from difflib import SequenceMatcher
@@ -91,6 +103,22 @@ def normalize_headers(df: pd.DataFrame, header_map: dict) -> pd.DataFrame:
     for col in df.columns:
         new_columns[col] = header_map.get(col, col)
     return df.rename(columns=new_columns)
+
+def get_horizontal_lines_from_rects(page, tolerance=1):
+    y_positions = []
+
+    for rect in page.rects:
+        y0 = round(rect["top"], 1)
+        y1 = round(rect["bottom"], 1)
+        height = abs(y1 - y0)
+
+        # Treat very short height as horizontal "line" — flat rectangle
+        if height <= tolerance:
+            y_positions.append(y0)
+
+    # Remove duplicates with tolerance
+    y_positions = sorted(set(round(y, 1) for y in y_positions))
+    return y_positions
 
 
 def align_to_standard_schema(df: pd.DataFrame, standard_columns: List[str]) -> pd.DataFrame:
@@ -203,40 +231,68 @@ def extract_tables_(pdf_path):
                         "snap_x_tolerance": 5,
                         "explicit_vertical_lines": column_lines
                     })
-                    debug_pic = page.to_image()
-                    debug_pic.debug_tablefinder(
-                        table_settings={
-                        "horizontal_strategy": "lines_strict",
-                        "intersection_tolerance": 8,
-                        "join_tolerance": 7,
-                        "snap_x_tolerance": 8,
-                        "explicit_vertical_lines" : column_lines
-                        }
-                    )
-                    debug_image_path = f"output_tables/debug_page_{page_number+1}.png"
-                    debug_pic.save(debug_image_path)
+                    # debug_pic = page.to_image()
+                    # debug_pic.debug_tablefinder(
+                    #     table_settings={
+                    #     "horizontal_strategy": "lines_strict",
+                    #     "intersection_tolerance": 8,
+                    #     "join_tolerance": 7,
+                    #     "snap_x_tolerance": 8,
+                    #     "explicit_vertical_lines" : column_lines
+                    #     }
+                    # )
+                    # debug_image_path = f"output_tables/debug_page_{page_number+1}.png"
+                    # debug_pic.save(debug_image_path)
                 else:
+                    # vertical_line = infer_vertical_lines_from_text(page)
                     vertical_line = get_vertical_lines(page)
-                    # print(vertical_line)
-                    tables = page.extract_table(table_settings= {
-                        "horizontal_strategy": "lines_strict",
-                        "intersection_tolerance": 8,
-                        "join_tolerance": 7,
-                        "snap_x_tolerance": 5,
-                        "explicit_vertical_lines": vertical_line
-                    })
-                    debug_pic = page.to_image()
-                    debug_pic.debug_tablefinder(
-                        table_settings={
-                        "horizontal_strategy": "lines_strict",
-                        "intersection_tolerance": 8,
-                        "join_tolerance": 7,
-                        "snap_x_tolerance": 5,
-                        "explicit_vertical_lines": vertical_line
-                        }
-                    )
-                    debug_image_path = f"output_tables/debug_page_{page_number+1}.png"
-                    debug_pic.save(debug_image_path)
+                    if vertical_line == []:
+                        vertical_line = [40, 95, 140, 270, 400, 430, 545]
+                    if page.lines:
+                        tables = page.extract_table(table_settings= {
+                            "horizontal_strategy": "lines_strict",
+                            "intersection_tolerance": 8,
+                            "join_tolerance": 7,
+                            "snap_x_tolerance": 5,
+                            "explicit_vertical_lines": vertical_line
+                        })
+                        # debug_pic = page.to_image()
+                        # debug_pic.debug_tablefinder(
+                        #     table_settings={
+                        #     "horizontal_strategy": "lines_strict",
+                        #     "intersection_tolerance": 8,
+                        #     "join_tolerance": 7,
+                        #     "snap_x_tolerance": 5,
+                        #     "explicit_vertical_lines": vertical_line,
+                        #     "explicit_horizontal_lines": [800]
+                        #     }
+                        # )
+                        # debug_image_path = f"output_tables/debug_page_{page_number+1}.png"
+                        # debug_pic.save(debug_image_path)
+                    else:
+                        horizontal_line = get_horizontal_lines_from_rects(page)
+                        horizontal_line.append(800)
+                        tables = page.extract_table(table_settings= {
+                            "horizontal_strategy": "lines_strict",
+                            "intersection_tolerance": 8,
+                            "join_tolerance": 7,
+                            "snap_x_tolerance": 5,
+                            "explicit_vertical_lines": vertical_line,
+                            "explicit_horizontal_lines": horizontal_line
+                        })
+                        # debug_pic = page.to_image()
+                        # debug_pic.debug_tablefinder(
+                        #     table_settings={
+                        #     "horizontal_strategy": "lines_strict",
+                        #     "intersection_tolerance": 8,
+                        #     "join_tolerance": 7,
+                        #     "snap_x_tolerance": 5,
+                        #     "explicit_vertical_lines": vertical_line,
+                        #     "explicit_horizontal_lines": horizontal_line
+                        #     }
+                        # )
+                        # debug_image_path = f"output_tables/debug_page_{page_number+1}.png"
+                        # debug_pic.save(debug_image_path)
                 # elif page_text and ("Ident./" not in page_text.splitlines()[1]) and ("Bemerkung" in page_text.splitlines()[1]):
                 #     # print("a")
                 #     tables = page.extract_tables(table_settings= {
@@ -411,7 +467,6 @@ def extract_tables_(pdf_path):
                     df = pd.DataFrame(flattened_data, columns=df.columns)
                     df = align_to_standard_schema(df, STANDARD_COLUMNS)
                     combined_data.append(df)
-
                     # if odd:
                     #     if case1:
                     #         df.insert(6, "Comment", "")
@@ -478,33 +533,34 @@ def extract_tables_(pdf_path):
     #     output_stream = BytesIO()
    
     # make excel pretty
+    MAX_COL_WIDTH = 50  # set your preferred maximum
+
     with pd.ExcelWriter(output_stream, engine='openpyxl') as writer:
         combined_df.to_excel(writer, index=False, sheet_name='Combined Output')
-    
+
     output_stream.seek(0)
     from openpyxl import load_workbook
     wb = load_workbook(output_stream)
     sheet = wb.active
 
+    # Adjust column widths
     for column in sheet.columns:
         max_length = 0
-        column_letter = column[0].column_letter 
+        column_letter = column[0].column_letter
         for cell in column:
             try:
                 if cell.value:
                     max_length = max(max_length, len(str(cell.value)))
             except Exception:
                 pass
-        adjusted_width = max_length + 2  
+        adjusted_width = min(max_length + 2, MAX_COL_WIDTH)
         sheet.column_dimensions[column_letter].width = adjusted_width
 
-    for cell in sheet[1]: 
+    # Bold header row
+    for cell in sheet[1]:
         cell.font = Font(bold=True)
 
-    for row in sheet.iter_rows():
-        for cell in row:
-            cell.alignment = Alignment(horizontal='center', vertical='center')
-
+    # Apply center alignment + wrap text + thin borders
     thin_border = Border(
         left=Side(style='thin'),
         right=Side(style='thin'),
@@ -513,8 +569,10 @@ def extract_tables_(pdf_path):
     )
     for row in sheet.iter_rows():
         for cell in row:
+            cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
             cell.border = thin_border
 
+    # Save final output
     output_stream = BytesIO()
     wb.save(output_stream)
     output_stream.seek(0)
