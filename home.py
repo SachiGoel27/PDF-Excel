@@ -59,11 +59,57 @@ st.markdown(dark_yellow_css, unsafe_allow_html=True)
 
 st.title('File Conversions')
 st.subheader("Input in your Sennebogen file to turn into an Excel file.", divider="gray")
-file = st.file_uploader("Input a PDF file", type=["PDF"], key="2")
-if st.button("Process File", key="2b"):
+st.write("Please look for the header format in the various files. Don't worry about header names just make sure the formats are similar.")
+st.write("Option 1 if your file matches this format: ")
+st.write("Note: this table format has the headers left justified.")
+st.image("Option1.png", )
+file = st.file_uploader("Input a PDF file", type=["PDF"], key="2a")
+if st.button("Process File", key="2ba"):
     if file is not None:
         with st.spinner("Processing..."):
-            excel_data = sennebogen.extract_tables_(file)
+            excel_data = sennebogen.extract_tables_(file, 1)
+
+            if excel_data:
+                st.download_button(
+                    label="Download Excel File",
+                    data=excel_data,
+                    file_name=f"{file.name}.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+            else:
+                st.error("No tables found in the PDF.")
+    else:
+        st.warning("Please upload a file before submitting.")
+
+st.write("Option 2 if your file matches this format: ")
+st.write("Note: this table format has header names in rectangles and are middle justified.")
+st.image("Option2.png", )
+file = st.file_uploader("Input a PDF file", type=["PDF"], key="2b")
+if st.button("Process File", key="2bb"):
+    if file is not None:
+        with st.spinner("Processing..."):
+            excel_data = sennebogen.extract_tables_(file, 2)
+
+            if excel_data:
+                st.download_button(
+                    label="Download Excel File",
+                    data=excel_data,
+                    file_name=f"{file.name}.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+            else:
+                st.error("No tables found in the PDF.")
+    else:
+        st.warning("Please upload a file before submitting.")
+
+st.write("Option 3 if your file matches this format: ")
+st.write("Note: here the headers are also left justified, but there are lines deliniating the headers as well.")
+st.image("Option3.png", )
+file = st.file_uploader("Input a PDF file", type=["PDF"], key="2c")
+if st.button("Process File", key="2bc"):
+    if file is not None:
+        with st.spinner("Processing..."):
+            excel_data = sennebogen.extract_tables_(file, 3)
 
             if excel_data:
                 st.download_button(

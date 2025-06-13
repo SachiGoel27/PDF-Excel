@@ -1,0 +1,83 @@
+Pos./ Fig. Ident./ No. Benennung Nomenclature Menge/ Qty. Bemerkung/ Remark siehe S.
+see page
+150 152567 Unterwagenrahmen undercarriage frame 1 Zusammenbau / assembly
+12
+155 121620 Achseinbau axle installation 1
+16
+156 119457 Achseinbau axle installation 1 Hinterachse / rear axle
+44
+158 119570 Zylindereinbau cylinder assembly 1 Pendelachse / swing axle
+68
+159 113705 Einbausatz installation kit 1 Pendelachsfreischaltg/pend. axle
+release
+84
+165 124383 Abstützung outrigger 2
+86
+166 142107 Abstützteller outrigger pad 4
+90
+167 160417 Abstützung outrigger 1 Verteilereinbau/distributor
+installation
+92
+169 121263 Schmierung lubrication 1 Unterwagen / undercarriage
+94
+170 155907 Antrieb drive 1
+98
+185 166119 Bereifung tyres 1
+124
+240 141932 Aufstieg access ladder 1 Übersicht / overview
+128
+265 114727 Rotoreinbau rotor installation 1
+134
+295 085626 Arretierung locking 1 Zusammenbau / assembly
+138
+297 157540 Schmierung lubrication 1 Drehverbindung / swivelling
+connection
+140
+298 142836 Schmierung lubrication 1 Drehkranz / slewing ring
+144
+299 136306 Drehverbindung swivelling connection 1 Zusammenbau / assembly
+152
+300 158157 Oberwagenrahmen upper structure frame 1
+154
+303 156252 Steuerblockeinbau control block installation 1
+158
+305 142375 Drehantrieb slewing drive 1
+160
+310 153099 Gegengewicht counterweight 1 Zusammenbau / assembly
+164
+315 159940 Verkleidung covering 1
+168
+319 153611 Aufstieg access ladder 1 Zusammenbau / assembly
+208
+323 158048 Geländer railing 1 Übersicht / overview
+210
+325 158171 Kraftstofftank fuel tank 1 Zusammenbau / assembly
+218
+330 153302 Hydrauliköltank hydraulic oil tank 1 Zusammenbau / assembly
+224
+335 140904 Ansaugleitung suction line 1
+234
+340 154345 Antriebseinheit drive unit 1
+236
+341 142613 Kraftstoffsystem fuel system 1
+238
+345 142376 Abtriebseinheit output unit 1
+240
+350 160119 Kühlsystem cooling system 1
+252
+351 142373 Lüfterflügeleinbau fan fin installation 1
+264
+360 142377 Luftfilteranlage air filter system 1
+266
+365 165211 Abgasnachbehandlung exhaust gas treatment 1
+270
+370 154449 Batterieeinbau battery installation 1
+276
+390 142970 HydroClean HydroClean 1 Einbau / installation
+278
+392 137590 Schmierung lubrication 1 Versorgungseinheit / supply unit
+282
+395 158198 Befestigungselemente fastening elements 1
+835.0.2013
+08.08.2012
+9 von 700
