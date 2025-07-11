@@ -6,3 +6,5 @@ streamlit
 borb==3.0.0
 xhtml2pdf
 jinja2
+requests
+xlsxwriter

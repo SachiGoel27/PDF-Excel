@@ -34,15 +34,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 
-.stSidebar {
-    background-color: #4D4D00; 
-    color: #FFD700;
-}
-
-.stSidebar .css-1v3fvcr {
-    color: #FFD700; 
-}
-
 input, textarea {
     background-color: #4D4D00; 
     color: #FFD700;
