@@ -57,7 +57,7 @@ except (KeyError, FileNotFoundError):
 
 st.download_button(
     label="⬇️ Download Example Format",
-    data= "PDF-Excel/Example.xlsx",
+    data= "Example.xlsx",
     file_name="example_format.xlsx",
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 )
