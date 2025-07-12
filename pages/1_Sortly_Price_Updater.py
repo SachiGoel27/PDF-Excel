@@ -54,7 +54,7 @@ except (KeyError, FileNotFoundError):
     st.stop()
 
 # --- Example File Download ---
-with open("path/to/your/template.xlsx", "rb") as file:
+with open("Example.xlsx", "rb") as file:
     excel_data = file.read()
 
 st.download_button(
