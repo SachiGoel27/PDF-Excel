@@ -54,10 +54,12 @@ except (KeyError, FileNotFoundError):
     st.stop()
 
 # --- Example File Download ---
+with open("path/to/your/template.xlsx", "rb") as file:
+    excel_data = file.read()
 
 st.download_button(
     label="⬇️ Download Example Format",
-    data= "Example.xlsx",
+    data= excel_data,
     file_name="example_format.xlsx",
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 )
