@@ -87,7 +87,7 @@ def add_info(file, username, password):
 # add things to a shopping cart
 def add_to_cart(file, username, password):
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)  # Set to True for deployment
+        browser = p.chromium.launch(headless=True)  # Set to True for deployment
         page = browser.new_page()
         output = {}
         try:
