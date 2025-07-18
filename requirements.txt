@@ -8,3 +8,4 @@ xhtml2pdf
 jinja2
 requests
 xlsxwriter
+playwright
