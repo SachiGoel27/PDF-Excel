@@ -1,5 +1,18 @@
 from playwright.sync_api import sync_playwright
 import pandas as pd
+import subprocess
+import os
+
+def ensure_playwright_browser_installed():
+    chromium_dir = os.path.expanduser("~/.cache/ms-playwright/chromium-1124")
+    if not os.path.exists(chromium_dir):
+        try:
+            subprocess.run(["playwright", "install", "chromium"], check=True)
+        except Exception as e:
+            print("Error installing Chromium:", e)
+
+ensure_playwright_browser_installed()
+
 def check_cred(user, pswd):
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)  # Set to True for deployment
