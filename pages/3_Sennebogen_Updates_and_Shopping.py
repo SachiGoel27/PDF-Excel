@@ -24,24 +24,20 @@ if st.button("Log"):
         st.error("Credentials are incorrect.")
 
 st.subheader("Item Updates")
-st.markdown("This is not ready yet.")
 file = st.file_uploader("Input an Excel file", type=["xlsx", "xls"], key="process")
 if st.button("Process File", key="process1"):
     if file is not None:
-        pass
-        # add logic below
-        # with st.spinner("Processing..."):
-        #     excel_data = sennebogen.extract_tables_(file, 1)
-
-        #     if excel_data:
-        #         st.download_button(
-        #             label="Download Excel File",
-        #             data=excel_data,
-        #             file_name=f"{file.name}.xlsx",
-        #             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        #         )
-        #     else:
-        #         st.error("No tables found in the PDF.")
+        with st.spinner("Processing..."):
+            excel_data = senn_web.add_info(file, username, password)
+            if excel_data:
+                st.download_button(
+                    label="Download Excel File",
+                    data=excel_data,
+                    file_name=f"{file.name}.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+            else:
+                st.error("Wrong PDF format")
     else:
         st.warning("Please upload a file before submitting.")
 

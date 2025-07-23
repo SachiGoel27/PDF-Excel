@@ -2,6 +2,7 @@ from playwright.sync_api import sync_playwright
 import pandas as pd
 import subprocess
 import os
+from io import BytesIO
 
 def ensure_playwright_browser_installed():
     chromium_dir = os.path.expanduser("~/.cache/ms-playwright/chromium-1124")
@@ -62,28 +63,38 @@ def add_info(file, username, password):
             page.fill('input[name="Password"]', password)
             page.click('.login-button')
             page.wait_for_timeout(3000)
-            for _, row in df:
-                item = row["No./\nIdent."]
+            print(df)
+            for _, row in df.iterrows():
+                item = str(row["No./\nIdent."]).zfill(6)
                 try:
                     page.fill('input[name="q"]', item)
                     page.click('button[type="submit"]')
-                    if page.is_visible("No products were found that matched your criteria."):
+                    page.wait_for_timeout(3000)
+                    if page.locator("text=No products were found that matched your criteria.").is_visible():
                         df.loc[row.name, 'Status'] = 'Not Found'
                         continue
-                    row['SKU'] = page.text_content('[id^="sku-"]')
-                    row['Description'] = page.text_content('.uppercase title').title()
-                    row['Weight'] = page.text_content('span[orig-size="16px"]:has-text("kg")')
-                    row['Height'] = page.text_content('span[orig-size="16px"]:has-text("feet"):nth-of-type(1)')
-                    row['Width'] = page.text_content('span[orig-size="16px"]:has-text("feet"):nth-of-type(2)')
-                    row['Length'] = page.text_content('span[orig-size="16px"]:has-text("feet"):nth-of-type(3)')
+
+                    df.loc[row.name, 'SKU'] = page.locator('[id^="sku-"]').evaluate("el => el.textContent")
+                    df.loc[row.name, 'Description'] = page.locator('.uppercase.title > b').evaluate("el => el.textContent")
+                    df.loc[row.name, 'Weight'] = page.locator('span[orig-size="16px"]:has-text("kg")').evaluate("el => el.textContent")
+                    df.loc[row.name, 'Height'] = page.locator('p:has(span:has-text("Height")) span:nth-of-type(2)').evaluate("el => el.textContent") 
+                    df.loc[row.name, 'Width'] = page.locator('p:has(span:has-text("Width")) span:nth-of-type(2)').evaluate("el => el.textContent")
+                    df.loc[row.name, 'Length'] = page.locator('p:has(span:has-text("Length")) span:nth-of-type(2)').evaluate("el => el.textContent")
+                    df.loc[row.name, 'List Price'] = page.locator('span[orig-size="22px"]:has-text("$")').evaluate("el => el.textContent.replace('$', '')")
+                    df.loc[row.name, 'Qty in Stock'] = page.locator('span.value.green').evaluate("el => el.textContent.split(' ')[0]")
+
                 except:
                     pass
-        except:
-            print("somthing")
+        except Exception as e:
+            print(e)
         finally:
             browser.close()
     styled_df = df.style.apply(highlight_not_found, axis=1)
-
+    output_stream = BytesIO()
+    with pd.ExcelWriter(output_stream, engine='openpyxl') as writer:
+        styled_df.to_excel(writer, index=False, sheet_name='Combined Output')
+    output_stream.seek(0)
+    return output_stream
 # add things to a shopping cart
 def add_to_cart(file, username, password):
     with sync_playwright() as p:
