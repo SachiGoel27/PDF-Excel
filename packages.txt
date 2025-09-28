@@ -10,8 +10,12 @@ libxdamage1
 libxfixes3
 libxrandr2
 libgbm1
-libcairo2
 libpango-1.0-0
 libasound2
 wget
 unzip
+libcairo2
+libcairo2-dev
+pkg-config
+python3-dev
+build-essential
